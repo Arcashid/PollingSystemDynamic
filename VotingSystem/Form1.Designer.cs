@@ -28,94 +28,114 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.label1 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
-            this.tbStudentNumber = new System.Windows.Forms.TextBox();
-            this.tbPassword = new System.Windows.Forms.TextBox();
-            this.BtnSignIn = new System.Windows.Forms.Button();
-            this.label3 = new System.Windows.Forms.Label();
-            this.guna2GradientPanel1 = new Guna.UI2.WinForms.Guna2GradientPanel();
+            this.tbPass = new Guna.UI2.WinForms.Guna2GradientPanel();
+            this.btnLogIn = new Guna.UI2.WinForms.Guna2GradientButton();
+            this.guna2HtmlLabel2 = new Guna.UI2.WinForms.Guna2HtmlLabel();
+            this.guna2HtmlLabel1 = new Guna.UI2.WinForms.Guna2HtmlLabel();
+            this.tbPassword = new Guna.UI2.WinForms.Guna2TextBox();
+            this.tbUsername = new Guna.UI2.WinForms.Guna2TextBox();
+            this.tbPass.SuspendLayout();
             this.SuspendLayout();
             // 
-            // label1
+            // tbPass
             // 
-            this.label1.AutoSize = true;
-            this.label1.Font = new System.Drawing.Font("Microsoft Tai Le", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(56, 221);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(100, 16);
-            this.label1.TabIndex = 0;
-            this.label1.Text = "Student number";
+            this.tbPass.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(126)))), ((int)(((byte)(230)))));
+            this.tbPass.Controls.Add(this.btnLogIn);
+            this.tbPass.Controls.Add(this.guna2HtmlLabel2);
+            this.tbPass.Controls.Add(this.guna2HtmlLabel1);
+            this.tbPass.Controls.Add(this.tbPassword);
+            this.tbPass.Controls.Add(this.tbUsername);
+            this.tbPass.Location = new System.Drawing.Point(-1, -1);
+            this.tbPass.Name = "tbPass";
+            this.tbPass.Size = new System.Drawing.Size(891, 516);
+            this.tbPass.TabIndex = 0;
             // 
-            // label2
+            // btnLogIn
             // 
-            this.label2.AutoSize = true;
-            this.label2.Font = new System.Drawing.Font("Microsoft Tai Le", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.Location = new System.Drawing.Point(56, 288);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(63, 16);
-            this.label2.TabIndex = 1;
-            this.label2.Text = "Password";
+            this.btnLogIn.BorderRadius = 15;
+            this.btnLogIn.DisabledState.BorderColor = System.Drawing.Color.DarkGray;
+            this.btnLogIn.DisabledState.CustomBorderColor = System.Drawing.Color.DarkGray;
+            this.btnLogIn.DisabledState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
+            this.btnLogIn.DisabledState.FillColor2 = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
+            this.btnLogIn.DisabledState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(141)))), ((int)(((byte)(141)))), ((int)(((byte)(141)))));
+            this.btnLogIn.FillColor2 = System.Drawing.Color.FromArgb(((int)(((byte)(21)))), ((int)(((byte)(113)))), ((int)(((byte)(212)))));
+            this.btnLogIn.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.btnLogIn.ForeColor = System.Drawing.Color.White;
+            this.btnLogIn.Location = new System.Drawing.Point(545, 272);
+            this.btnLogIn.Name = "btnLogIn";
+            this.btnLogIn.Size = new System.Drawing.Size(200, 45);
+            this.btnLogIn.TabIndex = 4;
+            this.btnLogIn.Text = "guna2GradientButton1";
+            this.btnLogIn.Click += new System.EventHandler(this.btnLogIn_Click);
             // 
-            // tbStudentNumber
+            // guna2HtmlLabel2
             // 
-            this.tbStudentNumber.Location = new System.Drawing.Point(59, 240);
-            this.tbStudentNumber.Name = "tbStudentNumber";
-            this.tbStudentNumber.Size = new System.Drawing.Size(264, 20);
-            this.tbStudentNumber.TabIndex = 2;
+            this.guna2HtmlLabel2.BackColor = System.Drawing.Color.Transparent;
+            this.guna2HtmlLabel2.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.guna2HtmlLabel2.ForeColor = System.Drawing.Color.WhiteSmoke;
+            this.guna2HtmlLabel2.Location = new System.Drawing.Point(545, 194);
+            this.guna2HtmlLabel2.Name = "guna2HtmlLabel2";
+            this.guna2HtmlLabel2.Size = new System.Drawing.Size(61, 19);
+            this.guna2HtmlLabel2.TabIndex = 3;
+            this.guna2HtmlLabel2.Text = "Password";
+            // 
+            // guna2HtmlLabel1
+            // 
+            this.guna2HtmlLabel1.BackColor = System.Drawing.Color.Transparent;
+            this.guna2HtmlLabel1.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.guna2HtmlLabel1.ForeColor = System.Drawing.Color.WhiteSmoke;
+            this.guna2HtmlLabel1.Location = new System.Drawing.Point(545, 117);
+            this.guna2HtmlLabel1.Name = "guna2HtmlLabel1";
+            this.guna2HtmlLabel1.Size = new System.Drawing.Size(105, 19);
+            this.guna2HtmlLabel1.TabIndex = 2;
+            this.guna2HtmlLabel1.Text = "Student Number";
             // 
             // tbPassword
             // 
-            this.tbPassword.Location = new System.Drawing.Point(59, 307);
+            this.tbPassword.BorderRadius = 15;
+            this.tbPassword.Cursor = System.Windows.Forms.Cursors.IBeam;
+            this.tbPassword.DefaultText = "";
+            this.tbPassword.DisabledState.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(208)))), ((int)(((byte)(208)))), ((int)(((byte)(208)))));
+            this.tbPassword.DisabledState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(226)))), ((int)(((byte)(226)))), ((int)(((byte)(226)))));
+            this.tbPassword.DisabledState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(138)))), ((int)(((byte)(138)))), ((int)(((byte)(138)))));
+            this.tbPassword.DisabledState.PlaceholderForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(138)))), ((int)(((byte)(138)))), ((int)(((byte)(138)))));
+            this.tbPassword.FocusedState.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(94)))), ((int)(((byte)(148)))), ((int)(((byte)(255)))));
+            this.tbPassword.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.tbPassword.HoverState.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(94)))), ((int)(((byte)(148)))), ((int)(((byte)(255)))));
+            this.tbPassword.Location = new System.Drawing.Point(534, 219);
             this.tbPassword.Name = "tbPassword";
-            this.tbPassword.Size = new System.Drawing.Size(264, 20);
-            this.tbPassword.TabIndex = 3;
+            this.tbPassword.PlaceholderText = "";
+            this.tbPassword.SelectedText = "";
+            this.tbPassword.Size = new System.Drawing.Size(224, 36);
+            this.tbPassword.TabIndex = 1;
             // 
-            // BtnSignIn
+            // tbUsername
             // 
-            this.BtnSignIn.Location = new System.Drawing.Point(59, 366);
-            this.BtnSignIn.Name = "BtnSignIn";
-            this.BtnSignIn.Size = new System.Drawing.Size(264, 23);
-            this.BtnSignIn.TabIndex = 5;
-            this.BtnSignIn.Text = "Sign In";
-            this.BtnSignIn.UseVisualStyleBackColor = true;
-            this.BtnSignIn.Click += new System.EventHandler(this.BtnSignIn_Click);
-            // 
-            // label3
-            // 
-            this.label3.Image = global::VotingSystem.Properties.Resources.cubao;
-            this.label3.Location = new System.Drawing.Point(97, 53);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(168, 125);
-            this.label3.TabIndex = 4;
-            // 
-            // guna2GradientPanel1
-            // 
-            this.guna2GradientPanel1.FillColor = System.Drawing.Color.Blue;
-            this.guna2GradientPanel1.FillColor2 = System.Drawing.Color.FromArgb(((int)(((byte)(128)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
-            this.guna2GradientPanel1.Location = new System.Drawing.Point(0, 0);
-            this.guna2GradientPanel1.Name = "guna2GradientPanel1";
-            this.guna2GradientPanel1.Size = new System.Drawing.Size(444, 462);
-            this.guna2GradientPanel1.TabIndex = 6;
+            this.tbUsername.BorderRadius = 15;
+            this.tbUsername.Cursor = System.Windows.Forms.Cursors.IBeam;
+            this.tbUsername.DefaultText = "";
+            this.tbUsername.DisabledState.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(208)))), ((int)(((byte)(208)))), ((int)(((byte)(208)))));
+            this.tbUsername.DisabledState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(226)))), ((int)(((byte)(226)))), ((int)(((byte)(226)))));
+            this.tbUsername.DisabledState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(138)))), ((int)(((byte)(138)))), ((int)(((byte)(138)))));
+            this.tbUsername.DisabledState.PlaceholderForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(138)))), ((int)(((byte)(138)))), ((int)(((byte)(138)))));
+            this.tbUsername.FocusedState.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(94)))), ((int)(((byte)(148)))), ((int)(((byte)(255)))));
+            this.tbUsername.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.tbUsername.HoverState.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(94)))), ((int)(((byte)(148)))), ((int)(((byte)(255)))));
+            this.tbUsername.Location = new System.Drawing.Point(534, 142);
+            this.tbUsername.Name = "tbUsername";
+            this.tbUsername.PlaceholderText = "";
+            this.tbUsername.SelectedText = "";
+            this.tbUsername.Size = new System.Drawing.Size(224, 36);
+            this.tbUsername.TabIndex = 0;
             // 
             // VotingSystem
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.SystemColors.HighlightText;
-            this.ClientSize = new System.Drawing.Size(369, 450);
-            this.Controls.Add(this.BtnSignIn);
-            this.Controls.Add(this.label3);
-            this.Controls.Add(this.tbPassword);
-            this.Controls.Add(this.tbStudentNumber);
-            this.Controls.Add(this.label2);
-            this.Controls.Add(this.label1);
-            this.Controls.Add(this.guna2GradientPanel1);
+            this.ClientSize = new System.Drawing.Size(889, 511);
+            this.Controls.Add(this.tbPass);
             this.Name = "VotingSystem";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Form1";
+            this.tbPass.ResumeLayout(false);
+            this.tbPass.PerformLayout();
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
@@ -124,10 +144,15 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox tbStudentNumber;
-        private System.Windows.Forms.TextBox tbPassword;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Button BtnSignIn;
         private Guna.UI2.WinForms.Guna2GradientPanel guna2GradientPanel1;
+        private Guna.UI2.WinForms.Guna2GradientPanel tbPass;
+        private Guna.UI2.WinForms.Guna2GradientButton btnLogIn;
+        private Guna.UI2.WinForms.Guna2HtmlLabel guna2HtmlLabel2;
+        private Guna.UI2.WinForms.Guna2HtmlLabel guna2HtmlLabel1;
+        private Guna.UI2.WinForms.Guna2TextBox tbPassword;
+        private Guna.UI2.WinForms.Guna2TextBox tbUsername;
     }
 }
 
