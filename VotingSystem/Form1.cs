@@ -1,4 +1,5 @@
-﻿using System;
+﻿using POLLINGSYSTEM;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -19,10 +20,11 @@ namespace VotingSystem
             InitializeComponent();
         }
 
-        private void BtnSignIn_Click(object sender, EventArgs e)
+        private void btnLogIn_Click(object sender, EventArgs e)
         {
 
-            string connectionString = @"Data Source=DESKTOP-G0UC22L\SQLEXPRESS;Initial Catalog=VotingSystem;Integrated Security=True";
+
+            string connectionString = @"Data Source=DESKTOP-54DEN4R\SQLEXPRESS;Initial Catalog=POLLINGSYSTEM;Integrated Security=True;Encrypt=False";
 
             using (SqlConnection con = new SqlConnection(connectionString))
             {
@@ -30,11 +32,11 @@ namespace VotingSystem
                 {
                     con.Open();
 
-                    string query = "SELECT COUNT(1) FROM Account WHERE StudentID = @StudentID AND Password = @Password";
+                    string query = "SELECT Count([Username]) FROM [dbo].[AccountTb] WHERE [Username] = @Useername AND [Password] = @Password";
 
                     using (SqlCommand cmd = new SqlCommand(query, con))
                     {
-                        cmd.Parameters.AddWithValue("@StudentID", tbStudentNumber.Text);
+                        cmd.Parameters.AddWithValue("@Useername", tbUsername.Text);
                         cmd.Parameters.AddWithValue("@Password", tbPassword.Text);
 
                         int count = (int)cmd.ExecuteScalar();

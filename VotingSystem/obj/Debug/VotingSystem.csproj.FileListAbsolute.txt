@@ -32,7 +32,6 @@ C:\Users\Cent\Documents\PollingSystem\VotingSystem\VotingSystem\bin\Debug\Voting
 C:\Users\Cent\Documents\PollingSystem\VotingSystem\VotingSystem\bin\Debug\VotingSystem.pdb
 C:\Users\Cent\Documents\PollingSystem\VotingSystem\VotingSystem\bin\Debug\Guna.UI2.dll
 C:\Users\Cent\Documents\PollingSystem\VotingSystem\VotingSystem\obj\Debug\VotingSystem.csproj.AssemblyReference.cache
-C:\Users\Cent\Documents\PollingSystem\VotingSystem\VotingSystem\obj\Debug\VotingSystem.AdminDashboard.resources
 C:\Users\Cent\Documents\PollingSystem\VotingSystem\VotingSystem\obj\Debug\VotingSystem.Properties.Resources.resources
 C:\Users\Cent\Documents\PollingSystem\VotingSystem\VotingSystem\obj\Debug\VotingSystem.UserDashboard.resources
 C:\Users\Cent\Documents\PollingSystem\VotingSystem\VotingSystem\obj\Debug\VotingSystem.csproj.GenerateResource.cache
@@ -40,4 +39,5 @@ C:\Users\Cent\Documents\PollingSystem\VotingSystem\VotingSystem\obj\Debug\Voting
 C:\Users\Cent\Documents\PollingSystem\VotingSystem\VotingSystem\obj\Debug\VotingSy.1FF55D8B.Up2Date
 C:\Users\Cent\Documents\PollingSystem\VotingSystem\VotingSystem\obj\Debug\VotingSystem.exe
 C:\Users\Cent\Documents\PollingSystem\VotingSystem\VotingSystem\obj\Debug\VotingSystem.pdb
-C:\Users\Cent\Documents\PollingSystem\VotingSystem\VotingSystem\obj\Debug\VotingSystem.Form1.resources
+C:\Users\Cent\Documents\PollingSystem\VotingSystem\VotingSystem\obj\Debug\POLLINGSYSTEM.AdminDashboard.resources
+C:\Users\Cent\Documents\PollingSystem\VotingSystem\VotingSystem\obj\Debug\VotingSystem.VotingSystem.resources

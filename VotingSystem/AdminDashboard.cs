@@ -2,21 +2,19 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq;
+using System.Management.Instrumentation;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Data.SqlClient;
+using VotingSystem;
 
-namespace VotingSystem
+namespace POLLINGSYSTEM
 {
     public partial class AdminDashboard : Form
-
-
     {
-        private string originalStudentID;
-
         List<string> programs = new List<string> {
             "Bachelor Of Science in Information Technology",
             "Bachelor Of Science in Computer Engineering",
@@ -25,797 +23,746 @@ namespace VotingSystem
             "Bachelor Of Science in Business Administration"
         };
 
-        List<string> positions = new List<string> {
-            "President",
-            "Vice President",
-            "Secretary",
-            "Auditor",
-            "Treasurer"
-        };
-
-        private const string ConnectionString = @"Data Source=DESKTOP-54DEN4R\SQLEXPRESS;Initial Catalog=VotingSystem;Integrated Security=True";
-
+        private const string ConnectionString = @"Data Source=DESKTOP-54DEN4R\SQLEXPRESS;Initial Catalog=POLLINGSYSTEM;Integrated Security=True;Encrypt=False";
 
         public AdminDashboard()
         {
             InitializeComponent();
 
+            UpdateTotalEventLabel();
+
+            EventTableData.AutoGenerateColumns = false;
+
+            EventTableData.Columns.Clear();
+
+            if (!EventTableData.Columns.Contains("EventID"))
+            {
+                EventTableData.Columns.Add("EventID", "Event ID");
+                EventTableData.Columns["EventID"].DataPropertyName = "EventID";
+                EventTableData.Columns["EventID"].Visible = false;
+            }
+
+            if (!EventTableData.Columns.Contains("EventName"))
+            {
+                EventTableData.Columns.Add("EventName", "Event Name");
+                EventTableData.Columns["EventName"].DataPropertyName = "EventName";
+            }
+
+            if (!EventTableData.Columns.Contains("TeamGroup"))
+            {
+                EventTableData.Columns.Add("TeamGroup", "Group");
+                EventTableData.Columns["TeamGroup"].DataPropertyName = "TeamGroup";
+            }
+
+            if (!EventTableData.Columns.Contains("TimeStart"))
+            {
+                EventTableData.Columns.Add("TimeStart", "Time Start");
+                EventTableData.Columns["TimeStart"].DataPropertyName = "TimeStart";
+                EventTableData.Columns["TimeStart"].DefaultCellStyle.Format = "MM/dd/yy hh:mm tt";
+            }
+
+            if (!EventTableData.Columns.Contains("TimeEnd"))
+            {
+                EventTableData.Columns.Add("TimeEnd", "Time End");
+                EventTableData.Columns["TimeEnd"].DataPropertyName = "TimeEnd";
+                EventTableData.Columns["TimeEnd"].DefaultCellStyle.Format = "MM/dd/yy hh:mm tt";
+            }
+
             foreach (string program in programs)
             {
-                cbProgramV.Items.Add(program);
+                cbProgram.Items.Add(program);
             }
 
-            foreach (string position in positions)
-            {
-                cbPosition.Items.Add(position);
-            }
+            LoadEventsData();
+            LoadParticipantsData();
 
-            foreach (string program in programs)
-            {
-                cbProgramC.Items.Add(program);
-            }
-            foreach (string program in programs)
-            {
-                cbProgramA.Items.Add(program);
-            }
-            LoadVotersData();
-            LoadCandidateData();
+            UpdateTotalEventLabel();
+            UpdateEventDropdown();
+
+            // 🌟 1. REGISTER EVENT HANDLER: Attach the dynamic filtering method.
+            cbEvent.SelectedIndexChanged += cbEvent_SelectedIndexChanged;
+
+            // 🛑 REMOVED: Initial call to UpdateTeamDropdown() is removed.
+            // Teams will now be loaded only when an event is selected in cbEvent.
         }
 
-        private void btnDashboard_Click_1(object sender, EventArgs e)
-        {
-            dashboardP.Visible = true;
-            mCreateNewEvent.Visible = false;
-            mVotersP.Visible = false;
-            mAccountP.Visible = false;
-        }
-
-        private void btnmCandidate_Click_1(object sender, EventArgs e)
-        {
-            dashboardP.Visible = false;
-            mCreateNewEvent.Visible = true;
-            mVotersP.Visible = false;
-            mAccountP.Visible = false;
-            LoadCandidateData();
-        }
-
-        private void btnmVoters_Click(object sender, EventArgs e)
-        {
-            dashboardP.Visible = false;
-            mCreateNewEvent.Visible = false;
-            mVotersP.Visible = true;
-            mAccountP.Visible = false;
-            LoadVotersData();
-        }
-
-        private void btnmAccount_Click(object sender, EventArgs e)
-        {
-            dashboardP.Visible = false;
-            mCreateNewEvent.Visible = false;
-            mVotersP.Visible = false;
-            mAccountP.Visible = true;
-            LoadAccountData();
-        }
-
-        private void LoadVotersData()
+        private void LoadEventsData()
         {
             using (SqlConnection con = new SqlConnection(ConnectionString))
             {
+                SqlDataAdapter da = new SqlDataAdapter("SELECT EventID, EventName, TeamGroup, TimeStart, TimeEnd FROM EventTb", con);
 
-                con.Open();
-                SqlDataAdapter da = new SqlDataAdapter("SELECT StudentID, FirstName, LastName, MiddleName, Program, Gender FROM Voters", con);
                 DataTable dt = new DataTable();
                 da.Fill(dt);
-                TableVoters.Columns.Clear();
-                TableVoters.DataSource = dt;
 
-                int totalRows = TableVoters.RowCount;
-
-                if (TableVoters.AllowUserToAddRows)
-                {
-                    totalRows--;
-                }
-
-                totalParticipants.Text = totalRows.ToString();
+                EventTableData.DataSource = dt;
             }
         }
-        private void TableVoters_CellContentClick(object sender, DataGridViewCellEventArgs e)
+
+        private void UpdateTotalEventLabel()
         {
-            if (e.RowIndex < 0) return;
-
-            String studentID = TableVoters.Rows[e.RowIndex].Cells[0].Value?.ToString();
-
-            this.originalStudentID = studentID;
-
-            String FirstName = TableVoters.Rows[e.RowIndex].Cells[1].Value?.ToString();
-            String LastName = TableVoters.Rows[e.RowIndex].Cells[2].Value?.ToString();
-            String MiddleName = TableVoters.Rows[e.RowIndex].Cells[3].Value?.ToString();
-            String Program = TableVoters.Rows[e.RowIndex].Cells[4].Value?.ToString();
-            String Gender = TableVoters.Rows[e.RowIndex].Cells[5].Value?.ToString();
-
-            tbStudentNumV.Text = studentID;
-            tbFirstNameV.Text = FirstName;
-            tbLastNameV.Text = LastName;
-            tbMiddleNameV.Text = MiddleName;
-
-            if (Gender != null && Gender.Equals("Male", StringComparison.OrdinalIgnoreCase))
+            if (EventTableData.DataSource is DataTable dt)
             {
-                rbMaleV.Checked = true;
-                rbFemaleV.Checked = false;
+                var uniqueEventCount = dt.AsEnumerable()
+                    .Select(row => row.Field<string>("EventName"))
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .Count();
+
+                // This correctly updates the dashboard label
+                lblTotalEvent.Text = uniqueEventCount.ToString();
             }
-            else if (Gender != null && Gender.Equals("Female", StringComparison.OrdinalIgnoreCase))
+        }
+
+        private void UpdateEventDropdown()
+        {
+            cbEvent.Items.Clear();
+
+            if (EventTableData.DataSource is DataTable dt)
             {
-                rbFemaleV.Checked = true;
-                rbMaleV.Checked = false;
+                var uniqueEventNames = dt.AsEnumerable()
+                    .Select(row => row.Field<string>("EventName"))
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .Where(n => !string.IsNullOrWhiteSpace(n))
+                    .ToList();
+
+                foreach (string eventName in uniqueEventNames)
+                {
+                    cbEvent.Items.Add(eventName);
+                }
+            }
+        }
+
+        // 🌟 2. NEW METHOD: Dynamic filtering based on event selection.
+        private void FilterAndPopulateTeamDropdown(string selectedEventName)
+        {
+            cbTeam.Items.Clear();
+
+            if (string.IsNullOrWhiteSpace(selectedEventName) || !(EventTableData.DataSource is DataTable dt))
+            {
+                return;
+            }
+
+            // Filter the DataTable for rows matching the selected event
+            var filteredTeamNames = dt.AsEnumerable()
+                .Where(row => row.Field<string>("EventName")
+                                .Equals(selectedEventName, StringComparison.OrdinalIgnoreCase))
+                .Select(row => row.Field<string>("TeamGroup"))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Where(n => !string.IsNullOrWhiteSpace(n))
+                .ToList();
+
+            foreach (string teamName in filteredTeamNames)
+            {
+                cbTeam.Items.Add(teamName);
+            }
+        }
+
+        // 🌟 3. NEW HANDLER: Triggers the team filtering whenever the event selection changes.
+        private void cbEvent_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (cbEvent.SelectedItem != null)
+            {
+                string selectedEvent = cbEvent.SelectedItem.ToString();
+                FilterAndPopulateTeamDropdown(selectedEvent);
             }
             else
             {
-                rbMaleV.Checked = false;
-                rbFemaleV.Checked = false;
+                // Clear the team dropdown if no event is selected
+                cbTeam.Items.Clear();
+            }
+        }
+
+        // 🛑 REMOVED/OBSOLETE: The old UpdateTeamDropdown() method is no longer needed.
+        // Teams are now populated by FilterAndPopulateTeamDropdown() via cbEvent_SelectedIndexChanged.
+
+        private void btnCreateEvent_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(tbEventName.Text) || string.IsNullOrWhiteSpace(tbTeam.Text))
+            {
+                MessageBox.Show("Please fill in Event Name and Group.");
+                return;
             }
 
-            int index = cbProgramV.FindString(Program);
-            if (index != -1)
+            try
             {
-                cbProgramV.SelectedIndex = index;
+                using (SqlConnection con = new SqlConnection(ConnectionString))
+                {
+                    con.Open();
+                    SqlCommand cmd = new SqlCommand(
+                        "INSERT INTO EventTb (EventName, TeamGroup, TimeStart, TimeEnd) VALUES (@EventName, @TeamGroup, @TimeStart, @TimeEnd)", con);
+
+                    cmd.Parameters.AddWithValue("@EventName", tbEventName.Text.Trim());
+                    cmd.Parameters.AddWithValue("@TeamGroup", tbTeam.Text.Trim());
+                    cmd.Parameters.AddWithValue("@TimeStart", dtpTimeStart.Value);
+                    cmd.Parameters.AddWithValue("@TimeEnd", dtpTimeEnd.Value);
+
+                    cmd.ExecuteNonQuery();
+                    MessageBox.Show("New Event created successfully and saved to database.");
+
+                    LoadEventsData();
+                    UpdateTotalEventLabel();
+                    UpdateEventDropdown();
+                    // The Event/Team cascade will happen automatically next time cbEvent is changed.
+                }
             }
-            else
+            catch (Exception ex)
             {
-                cbProgramV.SelectedIndex = -1;
+                MessageBox.Show("Error creating event: " + ex.Message);
+            }
+
+            ClearFields();
+        }
+
+        private void btnUpdateEvent_Click_1(object sender, EventArgs e)
+        {
+            if (EventTableData.SelectedRows.Count == 0 || string.IsNullOrWhiteSpace(tbEventID.Text))
+            {
+                MessageBox.Show("Please select an event to update, and ensure Event ID is loaded.");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(tbEventName.Text) || string.IsNullOrWhiteSpace(tbTeam.Text))
+            {
+                MessageBox.Show("Please fill in Event Name and Group.");
+                return;
+            }
+
+            if (!int.TryParse(tbEventID.Text, out int eventIdToUpdate))
+            {
+                MessageBox.Show("Invalid Event ID format.");
+                return;
+            }
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(ConnectionString))
+                {
+                    con.Open();
+
+                    SqlCommand cmd = new SqlCommand(
+                        "UPDATE EventTb SET EventName=@NewEventName, TeamGroup=@TeamGroup, TimeStart=@TimeStart, TimeEnd=@TimeEnd WHERE EventID=@EventID", con);
+
+                    cmd.Parameters.AddWithValue("@EventID", eventIdToUpdate);
+                    cmd.Parameters.AddWithValue("@NewEventName", tbEventName.Text.Trim());
+                    cmd.Parameters.AddWithValue("@TeamGroup", tbTeam.Text.Trim());
+                    cmd.Parameters.AddWithValue("@TimeStart", dtpTimeStart.Value);
+                    cmd.Parameters.AddWithValue("@TimeEnd", dtpTimeEnd.Value);
+
+                    int rowsAffected = cmd.ExecuteNonQuery();
+
+                    if (rowsAffected > 0)
+                    {
+                        MessageBox.Show("Event updated successfully in the database.");
+                    }
+                    else
+                    {
+                        MessageBox.Show("No event found with the selected ID to update.");
+                    }
+
+                    LoadEventsData();
+                    UpdateTotalEventLabel();
+                    UpdateEventDropdown();
+                    // The Event/Team cascade will happen automatically next time cbEvent is changed.
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error updating event: " + ex.Message);
+            }
+            ClearFields();
+        }
+
+        private void btnDeleteEvent_Click_1(object sender, EventArgs e)
+        {
+            if (EventTableData.SelectedRows.Count == 0 || string.IsNullOrWhiteSpace(tbEventID.Text))
+            {
+                MessageBox.Show("Please select an event to delete, and ensure Event ID is loaded.");
+                return;
+            }
+
+            if (!int.TryParse(tbEventID.Text, out int eventIdToDelete))
+            {
+                MessageBox.Show("Invalid Event ID format.");
+                return;
+            }
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(ConnectionString))
+                {
+                    con.Open();
+                    SqlCommand cmd = new SqlCommand("DELETE FROM EventTb WHERE EventID=@EventID", con);
+                    cmd.Parameters.AddWithValue("@EventID", eventIdToDelete);
+
+                    int rowsAffected = cmd.ExecuteNonQuery();
+
+                    if (rowsAffected > 0)
+                    {
+                        MessageBox.Show("Event deleted successfully from the database.");
+                    }
+                    else
+                    {
+                        MessageBox.Show("No event found with the selected ID to delete.");
+                    }
+
+                    LoadEventsData();
+                    UpdateTotalEventLabel();
+                    UpdateEventDropdown();
+                    // The Event/Team cascade will happen automatically next time cbEvent is changed.
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error deleting event: " + ex.Message);
+            }
+
+            ClearFields();
+        }
+
+        private void EventTableData_CellContentClick_1(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0 && e.RowIndex < EventTableData.Rows.Count)
+            {
+                DataGridViewRow row = EventTableData.Rows[e.RowIndex];
+
+                if (EventTableData.Columns.Contains("EventID") && row.Cells["EventID"].Value != null && row.Cells["EventID"].Value != DBNull.Value)
+                    tbEventID.Text = row.Cells["EventID"].Value.ToString();
+                else
+                    tbEventID.Clear();
+
+                if (EventTableData.Columns.Contains("EventName") && row.Cells["EventName"].Value != null && row.Cells["EventName"].Value != DBNull.Value)
+                    tbEventName.Text = row.Cells["EventName"].Value.ToString();
+
+                if (EventTableData.Columns.Contains("TeamGroup") && row.Cells["TeamGroup"].Value != null && row.Cells["TeamGroup"].Value != DBNull.Value)
+                    tbTeam.Text = row.Cells["TeamGroup"].Value.ToString();
+
+                if (EventTableData.Columns.Contains("TimeStart") && row.Cells["TimeStart"].Value != null &&
+                    DateTime.TryParse(row.Cells["TimeStart"].Value.ToString(), out DateTime start))
+                    dtpTimeStart.Value = start;
+                else
+                    dtpTimeStart.Value = DateTime.Now;
+
+                if (EventTableData.Columns.Contains("TimeEnd") && row.Cells["TimeEnd"].Value != null &&
+                    DateTime.TryParse(row.Cells["TimeEnd"].Value.ToString(), out DateTime end))
+                    dtpTimeEnd.Value = end;
+                else
+                    dtpTimeEnd.Value = DateTime.Now;
+
+            }
+        }
+
+
+        private void LoadParticipantsData()
+        {
+            using (SqlConnection con = new SqlConnection(ConnectionString))
+            {
+                ClearFields();
+                SqlDataAdapter da = new SqlDataAdapter("SELECT StudentNo, LastName, FirstName, MiddleName, Program, Team, Event FROM Participants", con);
+
+                DataTable dt = new DataTable();
+                da.Fill(dt);
+
+                TableParticipant.DataSource = dt;
+            }
+        }
+
+        private void ClearFields()
+        {
+            tbStudentNum.Clear();
+            tbLastName.Clear();
+            tbFirstName.Clear();
+            tbMiddleName.Clear();
+            cbProgram.SelectedIndex = -1;
+
+            // It's good practice to clear cbTeam if the event is cleared
+            cbTeam.Items.Clear();
+
+            tbEventID.Clear();
+
+            tbEventName.Clear();
+            tbTeam.Clear();
+
+            dtpTimeStart.Value = DateTime.Now;
+            dtpTimeEnd.Value = DateTime.Now;
+
+            cbEvent.SelectedIndex = -1;
+        }
+
+        private void TableParticipant_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0 && e.RowIndex < TableParticipant.Rows.Count)
+            {
+                DataGridViewRow row = TableParticipant.Rows[e.RowIndex];
+
+                tbStudentNum.Text = row.Cells["StudentNo"].Value?.ToString();
+                currentStudID = "";
+                currentStudID = tbStudentNum.Text;
+                tbLastName.Text = row.Cells["LastName"].Value?.ToString();
+                tbFirstName.Text = row.Cells["FirstName"].Value?.ToString();
+                tbMiddleName.Text = row.Cells["MiddleName"].Value?.ToString();
+                cbProgram.Text = row.Cells["Program"].Value?.ToString();
+
+                // Get event and team/role values
+                string eventName = row.Cells["Event"].Value?.ToString().Trim();
+                string teamName = row.Cells["Team"].Value?.ToString().Trim();
+
+                // Set Event Combobox (will trigger the team filtering)
+                int eventIndex = cbEvent.Items.IndexOf(eventName);
+                if (eventIndex >= 0)
+                    cbEvent.SelectedIndex = eventIndex;
+                else
+                    cbEvent.SelectedIndex = -1;
+
+                // Set Team Combobox (must be done AFTER event filtering)
+                if (!string.IsNullOrEmpty(teamName))
+                {
+                    int teamIndex = cbTeam.Items.IndexOf(teamName);
+                    if (teamIndex >= 0)
+                        cbTeam.SelectedIndex = teamIndex;
+                    else
+                        cbTeam.SelectedIndex = -1;
+                }
             }
         }
 
         private void btnAdd_Click(object sender, EventArgs e)
         {
-            using (SqlConnection con = new SqlConnection(ConnectionString))
+            // ... (Add validation logic) ...
+            if (string.IsNullOrWhiteSpace(tbStudentNum.Text) || string.IsNullOrWhiteSpace(tbLastName.Text) || cbProgram.SelectedIndex == -1 || cbTeam.SelectedIndex == -1 || cbEvent.SelectedIndex == -1)
             {
-                con.Open();
-
-                string StudentID = tbStudentNumV.Text;
-                string FirstName = tbFirstNameV.Text;
-                string LastName = tbLastNameV.Text;
-                string MiddleName = tbMiddleNameV.Text;
-                string Gender = rbMaleV.Checked ? "Male" : rbFemaleV.Checked ? "Female" : "";
-
-                if (string.IsNullOrEmpty(Gender))
-                {
-                    MessageBox.Show("Please Select a gender.");
-                    return;
-                }
-
-                if (cbProgramV.SelectedIndex == -1)
-                {
-                    MessageBox.Show("Please select a program.");
-                    return;
-                }
-
-                SqlCommand cmd = new SqlCommand(
-                    "INSERT INTO Voters (StudentID, FirstName, LastName, MiddleName, Gender, Program) VALUES (@StudentID, @FirstName, @LastName, @MiddleName, @Gender, @Program)", con);
-
-                cmd.Parameters.AddWithValue("@StudentID", StudentID);
-                cmd.Parameters.AddWithValue("@FirstName", FirstName);
-                cmd.Parameters.AddWithValue("@LastName", LastName);
-                cmd.Parameters.AddWithValue("@MiddleName", MiddleName);
-                cmd.Parameters.AddWithValue("@Gender", Gender);
-                cmd.Parameters.AddWithValue("@Program", cbProgramV.SelectedItem.ToString());
-
-                cmd.ExecuteNonQuery();
-                MessageBox.Show("Voters Account has been saved.");
-            }
-
-            tbFirstNameV.Clear();
-            tbLastNameV.Clear();
-            tbMiddleNameV.Clear();
-            tbStudentNumV.Clear();
-            rbMaleV.Checked = false;
-            rbFemaleV.Checked = false;
-            cbProgramV.SelectedIndex = -1;
-
-
-            LoadVotersData();
-        }
-
-        private void btnUpdate_Click(object sender, EventArgs e)
-        {
-            if (string.IsNullOrEmpty(this.originalStudentID))
-            {
-                MessageBox.Show("Please select a voter from the table before attempting to update.");
+                MessageBox.Show("Please fill in all required fields: Student ID, Last Name, Program, Team, and Event.");
                 return;
             }
 
+            string selectedEvent = cbEvent.SelectedItem.ToString();
+            string selectedRoleOrTeam = cbTeam.SelectedItem.ToString();
+
             using (SqlConnection con = new SqlConnection(ConnectionString))
             {
-                con.Open();
-
-                string NewStudentID = tbStudentNumV.Text;
-                string FirstName = tbFirstNameV.Text;
-                string LastName = tbLastNameV.Text;
-                string MiddleName = tbMiddleNameV.Text;
-                string Gender = rbMaleV.Checked ? "Male" : rbFemaleV.Checked ? "Female" : "";
-                string Program = cbProgramV.SelectedIndex != -1 ? cbProgramV.SelectedItem.ToString() : null;
-
-                if (string.IsNullOrEmpty(Gender))
+                try
                 {
-                    MessageBox.Show("Please select a gender.");
-                    return;
-                }
+                    con.Open();
+                    SqlCommand cmd = new SqlCommand(
+                        "INSERT INTO Participants (StudentID, LastName, FirstName, MiddleName, Program, Role, Events) VALUES (@StudentID, @LastName, @FirstName, @MiddleName, @Program, @Role, @Events)", con);
 
-                if (cbProgramV.SelectedIndex == -1)
+                    cmd.Parameters.AddWithValue("@StudentID", tbStudentNum.Text);
+                    cmd.Parameters.AddWithValue("@LastName", tbLastName.Text);
+                    cmd.Parameters.AddWithValue("@FirstName", tbFirstName.Text);
+                    cmd.Parameters.AddWithValue("@MiddleName", tbMiddleName.Text);
+                    cmd.Parameters.AddWithValue("@Program", cbProgram.SelectedItem.ToString());
+                    cmd.Parameters.AddWithValue("@Role", selectedRoleOrTeam);
+                    cmd.Parameters.AddWithValue("@Events", selectedEvent);
+
+                    cmd.ExecuteNonQuery();
+                    MessageBox.Show("Participant added successfully.");
+                    LoadParticipantsData();
+                }
+                catch (Exception ex)
                 {
-                    MessageBox.Show("Please select a program.");
-                    return;
+                    MessageBox.Show("Error adding participant: " + ex.Message);
                 }
-
-                SqlCommand cmd = new SqlCommand(
-                    "UPDATE Voters SET StudentID=@NewStudentID, FirstName=@FirstName, LastName=@LastName, MiddleName=@MiddleName, Gender=@Gender, Program=@Program WHERE StudentID=@OriginalStudentID", con);
-
-                cmd.Parameters.AddWithValue("@NewStudentID", NewStudentID);
-                cmd.Parameters.AddWithValue("@FirstName", FirstName);
-                cmd.Parameters.AddWithValue("@LastName", LastName);
-                cmd.Parameters.AddWithValue("@MiddleName", MiddleName);
-                cmd.Parameters.AddWithValue("@Gender", Gender);
-                cmd.Parameters.AddWithValue("@Program", Program);
-                cmd.Parameters.AddWithValue("@OriginalStudentID", this.originalStudentID);
-
-                int rowsAffected = cmd.ExecuteNonQuery();
-                if (rowsAffected > 0)
-                {
-                    MessageBox.Show("Voters information updated successfully.");
-                }
-                else
-                {
-                    MessageBox.Show("Update failed. The voter may not exist or no changes were made.");
-                }
-
-                tbFirstNameV.Clear();
-                tbLastNameV.Clear();
-                tbMiddleNameV.Clear();
-                tbStudentNumV.Clear();
-                rbMaleV.Checked = false;
-                rbFemaleV.Checked = false;
-                cbProgramV.SelectedIndex = -1;
             }
 
-            LoadVotersData();
-            this.originalStudentID = null;
+            ClearFields();
+        }
+
+        private void btnUpdate_Click_1(object sender, EventArgs e)
+        {
+            // ... (Update validation logic) ...
+            if (TableParticipant.SelectedRows.Count > 0)
+            {
+                if (string.IsNullOrWhiteSpace(tbStudentNum.Text))
+                {
+                    MessageBox.Show("Student ID is missing.");
+                    return;
+                }
+
+                if (cbProgram.SelectedIndex == -1 || cbTeam.SelectedIndex == -1 || cbEvent.SelectedIndex == -1)
+                {
+                    MessageBox.Show("Please select Program, Team, and Event.");
+                    return;
+                }
+
+                string selectedEvent = cbEvent.SelectedItem.ToString();
+                string selectedRoleOrTeam = cbTeam.SelectedItem.ToString();
+
+                try
+                {
+                    using (SqlConnection con = new SqlConnection(ConnectionString))
+                    {
+                        con.Open();
+
+                        SqlCommand cmd = new SqlCommand(
+                            "UPDATE dbo.Participants SET LastName=@LastName, FirstName=@FirstName, MiddleName=@MiddleName, Program=@Program, Role=@Role, Events=@Events WHERE StudentID=@StudentID", con);
+
+                        cmd.Parameters.AddWithValue("@StudentID", tbStudentNum.Text);
+                        cmd.Parameters.AddWithValue("@LastName", tbLastName.Text);
+                        cmd.Parameters.AddWithValue("@FirstName", tbFirstName.Text);
+                        cmd.Parameters.AddWithValue("@MiddleName", tbMiddleName.Text);
+                        cmd.Parameters.AddWithValue("@Program", cbProgram.SelectedItem.ToString());
+                        cmd.Parameters.AddWithValue("@Role", selectedRoleOrTeam);
+                        cmd.Parameters.AddWithValue("@Events", selectedEvent);
+
+                        int rowsAffected = cmd.ExecuteNonQuery();
+
+                        if (rowsAffected > 0)
+                        {
+                            MessageBox.Show("Participant updated successfully.");
+                        }
+                        else
+                        {
+                            MessageBox.Show("No record found to update.");
+                        }
+
+                        LoadParticipantsData();
+                    }
+
+                    ClearFields();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error updating participant: " + ex.Message);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Please select a participant to update.");
+            }
         }
 
         private void btnDelete_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(this.originalStudentID))
+            if (TableParticipant.SelectedRows.Count > 0)
             {
-                MessageBox.Show("Please select a voter from the table before attempting to Delete.");
+                using (SqlConnection con = new SqlConnection(ConnectionString))
+                {
+                    try
+                    {
+                        con.Open();
+                        SqlCommand cmd = new SqlCommand("DELETE FROM Participants WHERE StudentID=@StudentID", con);
+                        cmd.Parameters.AddWithValue("@StudentID", tbStudentNum.Text);
+                        cmd.ExecuteNonQuery();
+                        MessageBox.Show("Participant deleted successfully.");
+                        LoadParticipantsData();
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Error deleting participant: " + ex.Message);
+                    }
+                }
+
+                ClearFields();
+            }
+            else
+            {
+                MessageBox.Show("Please select a participant to delete.");
+            }
+        }
+
+        // ===== START: Navigation Button Clicks (Standard) =====
+        private void btnDashboard_Click_1(object sender, EventArgs e)
+        {
+            mPartcipant.Visible = false;
+            ListEventPanel.Visible = false;
+            dashboardP.Visible = true;
+        }
+
+        private void btnEvents_Click_1(object sender, EventArgs e)
+        {
+            mPartcipant.Visible = false;
+            ListEventPanel.Visible = true;
+            dashboardP.Visible = false;
+            LoadEventsData();
+        }
+
+        private void btnPaticipant_Click_1(object sender, EventArgs e)
+        {
+            mPartcipant.Visible = true;
+            ListEventPanel.Visible = false;
+            dashboardP.Visible = false;
+            LoadParticipantsData();
+        }
+
+        private void btnAccount_Click_1(object sender, EventArgs e)
+        {
+            mPartcipant.Visible = false;
+            ListEventPanel.Visible = false;
+            dashboardP.Visible = false;
+        }
+
+        private void btnHistory_Click_1(object sender, EventArgs e)
+        {
+            mPartcipant.Visible = false;
+            ListEventPanel.Visible = false;
+            dashboardP.Visible = false;
+        }
+
+        private void btnAdd_Click_1(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(tbStudentNum.Text) ||
+                string.IsNullOrWhiteSpace(tbLastName.Text) ||
+                string.IsNullOrWhiteSpace(tbFirstName.Text) ||
+                string.IsNullOrWhiteSpace(cbProgram.Text) ||
+                string.IsNullOrWhiteSpace(cbEvent.Text) ||
+                string.IsNullOrWhiteSpace(cbTeam.Text))
+            {
+
+                MessageBox.Show(
+                    "Please fill out all required fields: Student Number, Last Name, First Name, Program, Event, and Team.",
+                    "Missing Information",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
+                return;
+            }
+            try
+            {
+                using (SqlConnection con = new SqlConnection(ConnectionString))
+                {
+                    con.Open();
+                    SqlCommand cmd = new SqlCommand(
+                        "INSERT INTO [dbo].[Participants]" +
+                        "         ([StudentNo]" +
+                        "          ,[LastName]" +
+                        "           ,[FirstName]" +
+                        "           ,[MiddleName]" +
+                        "          ,[Program]" +
+                        "           ,[Event]" +
+                        "          ,[Team])" +
+                        "     VALUES" +
+                        "           (@studID," +
+                        "          @tbLastName," +
+                        "         @tbFirstName," +
+                        "          @tbMiddleName," +
+                        "          @cbProgram," +
+                        "          @cbEvent," +
+                        "          @cbTeam)", con);
+
+                    cmd.Parameters.AddWithValue("@studID", tbStudentNum.Text.Trim());
+                    cmd.Parameters.AddWithValue("@tbLastName", tbLastName.Text.Trim());
+                    cmd.Parameters.AddWithValue("@tbFirstName", tbFirstName.Text.Trim());
+                    cmd.Parameters.AddWithValue("@tbMiddleName", tbMiddleName.Text.Trim());
+                    cmd.Parameters.AddWithValue("@cbProgram", cbProgram.Text.Trim());
+                    cmd.Parameters.AddWithValue("@cbEvent", cbEvent.Text);
+                    cmd.Parameters.AddWithValue("@cbTeam", cbTeam.Text);
+
+                    cmd.ExecuteNonQuery();
+                    MessageBox.Show("Successfully saved participant details.");
+
+                    LoadParticipantsData();
+                    UpdateTotalEventLabel();
+                    UpdateEventDropdown();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error creating event: " + ex.Message);
+            }
+
+        }
+
+        private string currentStudID = "";
+
+        private void btnUpdate_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(tbStudentNum.Text) ||
+                string.IsNullOrWhiteSpace(tbLastName.Text) ||
+                string.IsNullOrWhiteSpace(tbFirstName.Text) ||
+                string.IsNullOrWhiteSpace(cbProgram.Text) ||
+                string.IsNullOrWhiteSpace(cbEvent.Text) ||
+                string.IsNullOrWhiteSpace(cbTeam.Text))
+            {
+
+                MessageBox.Show(
+                    "Please fill out all required fields: Student Number, Last Name, First Name, Program, Event, and Team.",
+                    "Missing Information",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
+                return;
+            }
+            try
+            {
+                using (SqlConnection con = new SqlConnection(ConnectionString))
+                {
+                    con.Open();
+                    SqlCommand cmd = new SqlCommand(
+                        "UPDATE [dbo].[Participants] SET " +
+                        "[StudentNo] = @studID, " +
+                        "[LastName] = @tbLastName, " +
+                        "[FirstName] = @tbFirstName, " +
+                        "[MiddleName] = @tbMiddleName, " +
+                        "[Program] = @cbProgram, " +
+                        "[Event] = @cbEvent, " +
+                        "[Team] = @cbTeam" +
+                        " WHERE [StudentNo] = @currentStudID", con);
+
+                    cmd.Parameters.AddWithValue("@studID", tbStudentNum.Text.Trim());
+                    cmd.Parameters.AddWithValue("@tbLastName", tbLastName.Text.Trim());
+                    cmd.Parameters.AddWithValue("@tbFirstName", tbFirstName.Text.Trim());
+                    cmd.Parameters.AddWithValue("@tbMiddleName", tbMiddleName.Text.Trim());
+                    cmd.Parameters.AddWithValue("@cbProgram", cbProgram.Text.Trim());
+                    cmd.Parameters.AddWithValue("@cbEvent", cbEvent.Text);
+                    cmd.Parameters.AddWithValue("@cbTeam", cbTeam.Text);
+                    cmd.Parameters.AddWithValue("@currentStudID", currentStudID.Trim());    
+
+                    cmd.ExecuteNonQuery();
+                    MessageBox.Show("Successfully updated participant details.");
+
+                    LoadParticipantsData();
+                    UpdateTotalEventLabel();
+                    UpdateEventDropdown();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error creating event: " + ex.Message);
+            }
+        }
+
+        private void btnDelete_Click_1(object sender, EventArgs e)
+        {
+
+            if (string.IsNullOrWhiteSpace(tbStudentNum.Text))
+            {
+                MessageBox.Show("Please enter the Student Number of the record you wish to delete.", "Missing ID", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            DialogResult result = MessageBox.Show(
-                $"Are you sure you want to delete the voter with Student ID: {this.originalStudentID}?",
+            DialogResult dialogResult = MessageBox.Show(
+                $"Are you sure you want to permanently delete the record for Student ID: {tbStudentNum.Text.Trim()}?",
                 "Confirm Deletion",
                 MessageBoxButtons.YesNo,
-                MessageBoxIcon.Question);
+                MessageBoxIcon.Question
+            );
 
-            if (result != DialogResult.Yes)
+            if (dialogResult == DialogResult.No)
             {
                 return;
             }
 
-            using (SqlConnection con = new SqlConnection(ConnectionString))
+            try
             {
-                con.Open();
-
-                SqlCommand cmd = new SqlCommand(
-                    "DELETE FROM Voters WHERE StudentID=@OriginalStudentID", con);
-
-                cmd.Parameters.AddWithValue("@OriginalStudentID", this.originalStudentID);
-
-                int rowsAffected = cmd.ExecuteNonQuery();
-                if (rowsAffected > 0)
+                using (SqlConnection con = new SqlConnection(ConnectionString))
                 {
-                    MessageBox.Show("Voters account has been deleted.");
+                    con.Open();
+                    SqlCommand cmd = new SqlCommand(
+                        "DELETE FROM [dbo].[Participants] WHERE [StudentNo] = @studID", con);
+
+                    cmd.Parameters.AddWithValue("@studID", tbStudentNum.Text.Trim());
+
+                    cmd.ExecuteNonQuery();
+                    MessageBox.Show("Successfully deleted participant details.");
+
+                    LoadParticipantsData();
+                    UpdateTotalEventLabel();
+                    UpdateEventDropdown();
                 }
-                else
-                {
-                    MessageBox.Show("Delete failed.");
-                }
-
-                tbFirstNameV.Clear();
-                tbLastNameV.Clear();
-                tbMiddleNameV.Clear();
-                tbStudentNumV.Clear();
-                rbMaleV.Checked = false;
-                rbFemaleV.Checked = false;
-                cbProgramV.SelectedIndex = -1;
             }
-
-            LoadVotersData();
-            this.originalStudentID = null;
-        }
-
-        private void LoadCandidateData()
-        {
-            using (SqlConnection con = new SqlConnection(ConnectionString))
+            catch (Exception ex)
             {
-                con.Open();
-                SqlDataAdapter da = new SqlDataAdapter("SELECT StudentID, FirstName, LastName, MiddleName, Program, Gender, Position FROM Candidate", con);
-                DataTable dt = new DataTable();
-                da.Fill(dt);
-
-                TableCandidate.Columns.Clear();
-                TableCandidate.DataSource = dt;
-
-                int rowCount = TableCandidate.RowCount;
-
-                if (TableCandidate.AllowUserToAddRows)
-                {
-                    rowCount--;
-                }
-
-                candidate.Text = rowCount.ToString();
+                MessageBox.Show("Error creating event: " + ex.Message);
             }
-        }
-        private void btnAddC_Click(object sender, EventArgs e)
-        {
-            using (SqlConnection con = new SqlConnection(ConnectionString))
-            {
-                con.Open();
-
-                string StudentID = tbStudentNumberC.Text;
-                string FirstName = tbFirstNameC.Text;
-                string LastName = tbLastNameC.Text;
-                string MiddleName = tbMiddleNameC.Text;
-                string Gender = rbMaleC.Checked ? "Male" : rbFemaleC.Checked ? "Female" : "";
-                string Program = cbProgramC.SelectedIndex != -1 ? cbProgramC.SelectedItem.ToString() : null;
-                string Position = cbPosition.SelectedIndex != -1 ? cbPosition.SelectedItem.ToString() : null;
-
-                if (cbPosition.SelectedIndex == -1)
-                {
-                    MessageBox.Show("Please select a position.");
-                    return;
-
-                }
-
-                if (string.IsNullOrEmpty(Gender))
-                {
-                    MessageBox.Show("Please Select a gender.");
-                    return;
-                }
-
-                if (cbProgramC.SelectedIndex == -1)
-                {
-                    MessageBox.Show("Please select a program.");
-                    return;
-                }
-
-                if (cbPosition.SelectedIndex == -1)
-                {
-                    MessageBox.Show("Please select a position.");
-                    return;
-                }
-
-                SqlCommand cmd = new SqlCommand(
-                    "INSERT INTO Candidate (StudentID, FirstName, LastName, MiddleName, Gender, Program, Position) VALUES (@StudentID, @FirstName, @LastName, @MiddleName, @Gender, @Program, @Position)", con);
-
-                cmd.Parameters.AddWithValue("@StudentID", StudentID);
-                cmd.Parameters.AddWithValue("@FirstName", FirstName);
-                cmd.Parameters.AddWithValue("@LastName", LastName);
-                cmd.Parameters.AddWithValue("@MiddleName", MiddleName);
-                cmd.Parameters.AddWithValue("@Gender", Gender);
-                cmd.Parameters.AddWithValue("@Program", cbProgramC.SelectedItem.ToString());
-                cmd.Parameters.AddWithValue("@Position", cbPosition.SelectedItem.ToString());
-                cmd.ExecuteNonQuery();
-                MessageBox.Show("Candidate Account has been saved.");
-
-                con.Close();
-            }
-
-            tbFirstNameC.Clear();
-            tbLastNameC.Clear();
-            tbMiddleNameC.Clear();
-            tbStudentNumberC.Clear();
-            rbMaleC.Checked = false;
-            rbFemaleC.Checked = false;
-            cbProgramC.SelectedIndex = -1;
-
-            LoadCandidateData();
-        }
-
-        private void TableCandidate_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-            if (e.RowIndex < 0) return;
-
-            String studentID = TableCandidate.Rows[e.RowIndex].Cells[0].Value?.ToString();
-
-            this.originalStudentID = studentID;
-
-            String FirstName = TableCandidate.Rows[e.RowIndex].Cells[1].Value?.ToString();
-            String LastName = TableCandidate.Rows[e.RowIndex].Cells[2].Value?.ToString();
-            String MiddleName = TableCandidate.Rows[e.RowIndex].Cells[3].Value?.ToString();
-            String Program = TableCandidate.Rows[e.RowIndex].Cells[4].Value?.ToString();
-            String Gender = TableCandidate.Rows[e.RowIndex].Cells[5].Value?.ToString();
-            String Position = TableCandidate.Rows[e.RowIndex].Cells[6].Value?.ToString();
-
-            tbStudentNumberC.Text = studentID;
-            tbFirstNameC.Text = FirstName;
-            tbLastNameC.Text = LastName;
-            tbMiddleNameC.Text = MiddleName;
-
-            if (Gender != null && Gender.Equals("Male", StringComparison.OrdinalIgnoreCase))
-            {
-                rbMaleC.Checked = true;
-                rbFemaleC.Checked = false;
-            }
-            else if (Gender != null && Gender.Equals("Female", StringComparison.OrdinalIgnoreCase))
-            {
-                rbFemaleC.Checked = true;
-                rbMaleC.Checked = false;
-            }
-            else
-            {
-                rbMaleC.Checked = false;
-                rbFemaleC.Checked = false;
-            }
-
-            int indexProg = cbProgramC.FindString(Program);
-            if (indexProg != -1)
-            {
-                cbProgramC.SelectedIndex = indexProg;
-            }
-            else
-            {
-                cbProgramC.SelectedIndex = -1;
-            }
-
-            int indexPos = cbPosition.FindString(Position);
-            if (indexPos != -1)
-            {
-                cbPosition.SelectedIndex = indexPos;
-            }
-            else
-            {
-                cbPosition.SelectedIndex = -1;
-            }
-        }
-
-        private void btnUpdateC_Click(object sender, EventArgs e)
-        {
-            if (string.IsNullOrEmpty(this.originalStudentID))
-            {
-                MessageBox.Show("Please select a Candidate from the table before attempting to update.");
-                return;
-            }
-
-            using (SqlConnection con = new SqlConnection(ConnectionString))
-            {
-                con.Open();
-
-                string NewStudentID = tbStudentNumberC.Text;
-                string FirstName = tbFirstNameC.Text;
-                string LastName = tbLastNameC.Text;
-                string MiddleName = tbMiddleNameC.Text;
-                string Gender = rbMaleC.Checked ? "Male" : rbFemaleC.Checked ? "Female" : "";
-                string Program = cbProgramC.SelectedIndex != -1 ? cbProgramC.SelectedItem.ToString() : null;
-                string Position = cbPosition.SelectedIndex != -1 ? cbPosition.SelectedItem.ToString() : null;
-
-                if (string.IsNullOrEmpty(Gender))
-                {
-                    MessageBox.Show("Please select a gender.");
-                    return;
-                }
-
-                if (cbProgramC.SelectedIndex == -1)
-                {
-                    MessageBox.Show("Please select a program.");
-                    return;
-                }
-
-                if (cbPosition.SelectedIndex == -1)
-                {
-                    MessageBox.Show("Please select a position.");
-                    return;
-                }
-
-                SqlCommand cmd = new SqlCommand(
-                    "UPDATE Candidate SET StudentID=@NewStudentID, FirstName=@FirstName, LastName=@LastName, MiddleName=@MiddleName, Gender=@Gender, Program=@Program, Position=@Position WHERE StudentID=@OriginalStudentID", con);
-
-                cmd.Parameters.AddWithValue("@NewStudentID", NewStudentID);
-                cmd.Parameters.AddWithValue("@FirstName", FirstName);
-                cmd.Parameters.AddWithValue("@LastName", LastName);
-                cmd.Parameters.AddWithValue("@MiddleName", MiddleName);
-                cmd.Parameters.AddWithValue("@Gender", Gender);
-                cmd.Parameters.AddWithValue("@Program", Program);
-                cmd.Parameters.AddWithValue("@OriginalStudentID", this.originalStudentID);
-                cmd.Parameters.AddWithValue("@Position", Position);
-
-                int rowsAffected = cmd.ExecuteNonQuery();
-                if (rowsAffected > 0)
-                {
-                    MessageBox.Show("Candidate information updated successfully.");
-                }
-                else
-                {
-                    MessageBox.Show("Update failed. The voter may not exist or no changes were made.");
-                }
-
-                tbFirstNameC.Clear();
-                tbLastNameC.Clear();
-                tbMiddleNameC.Clear();
-                tbStudentNumberC.Clear();
-                rbMaleC.Checked = false;
-                rbFemaleC.Checked = false;
-                cbProgramC.SelectedIndex = -1;
-            }
-
-            LoadCandidateData();
-            this.originalStudentID = null;
-        }
-
-        private void btnDeleteC_Click(object sender, EventArgs e)
-        {
-            if (string.IsNullOrEmpty(this.originalStudentID))
-            {
-                MessageBox.Show("Please select a Candidate from the table before attempting to Delete.");
-                return;
-            }
-
-            DialogResult result = MessageBox.Show(
-                $"Are you sure you want to delete the Candidate with Student ID: {this.originalStudentID}?",
-                "Confirm Deletion",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Question);
-
-            if (result != DialogResult.Yes)
-            {
-                return;
-            }
-
-            using (SqlConnection con = new SqlConnection(ConnectionString))
-            {
-                con.Open();
-
-                SqlCommand cmd = new SqlCommand(
-                    "DELETE FROM Candidate WHERE StudentID=@OriginalStudentID", con);
-
-                cmd.Parameters.AddWithValue("@OriginalStudentID", this.originalStudentID);
-
-                int rowsAffected = cmd.ExecuteNonQuery();
-                if (rowsAffected > 0)
-                {
-                    MessageBox.Show("Candidate account has been deleted.");
-                }
-                else
-                {
-                    MessageBox.Show("Delete failed.");
-                }
-
-                tbFirstNameC.Clear();
-                tbLastNameC.Clear();
-                tbMiddleNameC.Clear();
-                tbStudentNumberC.Clear();
-                rbMaleC.Checked = false;
-                rbFemaleC.Checked = false;
-                cbProgramC.SelectedIndex = -1;
-            }
-
-            LoadCandidateData();
-            this.originalStudentID = null;
-        }
-
-        private void TableAccount_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-            if (e.RowIndex < 0) return;
-
-            String studentID = TableAccount.Rows[e.RowIndex].Cells[0].Value?.ToString();
-
-            this.originalStudentID = studentID;
-
-            String FirstName = TableAccount.Rows[e.RowIndex].Cells[1].Value?.ToString();
-            String LastName = TableAccount.Rows[e.RowIndex].Cells[2].Value?.ToString();
-            String MiddleName = TableAccount.Rows[e.RowIndex].Cells[3].Value?.ToString();
-            String Program = TableAccount.Rows[e.RowIndex].Cells[4].Value?.ToString();
-            String Password = TableAccount.Rows[e.RowIndex].Cells[5].Value?.ToString();
-
-            tbStudentNumberA.Text = studentID;
-            tbFirstNameA.Text = FirstName;
-            tbLastNameA.Text = LastName;
-            tbMiddleNameA.Text = MiddleName;
-            tbPasswordA.Text = Password;
-
-            int index = cbProgramA.FindString(Program);
-            if (index != -1)
-            {
-                cbProgramA.SelectedIndex = index;
-            }
-            else
-            {
-                cbProgramA.SelectedIndex = -1;
-            }
-        }
-
-        private void LoadAccountData()
-        {
-            using (SqlConnection con = new SqlConnection(ConnectionString))
-            {
-                con.Open();
-                SqlDataAdapter da = new SqlDataAdapter("SELECT StudentID, FirstName, LastName, MiddleName, Program, Password FROM Account", con);
-                DataTable dt = new DataTable();
-                da.Fill(dt);
-
-                TableAccount.Columns.Clear();
-                TableAccount.DataSource = dt;
-            }
-        }
-
-
-        private void btnAddA_Click(object sender, EventArgs e)
-        {
-            using (SqlConnection con = new SqlConnection(ConnectionString))
-            {
-                con.Open();
-
-                string StudentID = tbStudentNumberA.Text;
-                string FirstName = tbFirstNameA.Text;
-                string LastName = tbLastNameA.Text;
-                string MiddleName = tbMiddleNameA.Text;
-                string Program = cbProgramA.SelectedIndex != -1 ? cbProgramA.SelectedItem.ToString() : null;
-                string Password = tbPasswordA.Text;
-
-                if (cbProgramA.SelectedIndex == -1)
-                {
-                    MessageBox.Show("Please select a program.");
-                    return;
-                }
-
-                SqlCommand cmd = new SqlCommand(
-                    "INSERT INTO Account (StudentID, FirstName, LastName, MiddleName, Program, Password) VALUES (@StudentID, @FirstName, @LastName, @MiddleName, @Program, @Password)", con);
-
-                cmd.Parameters.AddWithValue("@StudentID", StudentID);
-                cmd.Parameters.AddWithValue("@FirstName", FirstName);
-                cmd.Parameters.AddWithValue("@LastName", LastName);
-                cmd.Parameters.AddWithValue("@MiddleName", MiddleName);
-                cmd.Parameters.AddWithValue("@Program", cbProgramA.SelectedItem.ToString());
-                cmd.Parameters.AddWithValue("@Password", Password);
-                cmd.ExecuteNonQuery();
-                MessageBox.Show("Account has been saved.");
-
-                con.Close();
-
-                tbFirstNameA.Clear();
-                tbLastNameA.Clear();
-                tbMiddleNameA.Clear();
-                tbStudentNumberA.Clear();
-                cbProgramA.SelectedIndex = -1;
-                tbPasswordA.Clear();
-            }
-            LoadAccountData();
-        }
-
-        private void btnUpdateA_Click(object sender, EventArgs e)
-        {
-            if (string.IsNullOrEmpty(this.originalStudentID))
-            {
-                MessageBox.Show("Please select a voter from the table before attempting to update.");
-                return;
-            }
-
-            using (SqlConnection con = new SqlConnection(ConnectionString))
-            {
-                con.Open();
-
-                string NewStudentID = tbStudentNumberA.Text;
-    string FirstName = tbFirstNameA.Text;
-    string LastName = tbLastNameA.Text;
-    string MiddleName = tbMiddleNameA.Text;
-    string Program = cbProgramA.SelectedIndex != -1 ? cbProgramA.SelectedItem.ToString() : null;
-    string Password = tbPasswordA.Text;
-
-                if (cbProgramA.SelectedIndex == -1)
-                {
-                    MessageBox.Show("Please select a program.");
-                    return;
-                }
-
-SqlCommand cmd = new SqlCommand(
-    "UPDATE Account SET StudentID=@NewStudentID, FirstName=@FirstName, LastName=@LastName, MiddleName=@MiddleName, Program=@Program, Password=@Password WHERE StudentID=@OriginalStudentID", con);
-
-cmd.Parameters.AddWithValue("@NewStudentID", NewStudentID);
-cmd.Parameters.AddWithValue("@FirstName", FirstName);
-cmd.Parameters.AddWithValue("@LastName", LastName);
-cmd.Parameters.AddWithValue("@MiddleName", MiddleName);
-cmd.Parameters.AddWithValue("@Program", Program);
-cmd.Parameters.AddWithValue("@OriginalStudentID", this.originalStudentID);
-cmd.Parameters.AddWithValue("@Password", Password);
-int rowsAffected = cmd.ExecuteNonQuery();
-if (rowsAffected > 0)
-{
-    MessageBox.Show("Account information updated successfully.");
-}
-else
-{
-    MessageBox.Show("Update failed. The Account may not exist or no changes were made.");
-}
-
-tbFirstNameA.Clear();
-tbLastNameA.Clear();
-tbMiddleNameA.Clear();
-tbStudentNumberA.Clear();
-cbProgramA.SelectedIndex = -1;
-tbPasswordA.Clear();
-
-            }
-            LoadAccountData();
-this.originalStudentID = null;
-        }
-
-        private void btnDeleteA_Click(object sender, EventArgs e)
-        {
-            if (string.IsNullOrEmpty(this.originalStudentID))
-            {
-                MessageBox.Show("Please select a Account from the table before attempting to Delete.");
-                return;
-            }
-
-            DialogResult result = MessageBox.Show(
-                $"Are you sure you want to delete the Candidate with Student ID: {this.originalStudentID}?",
-                "Confirm Deletion",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Question);
-
-            if (result != DialogResult.Yes)
-            {
-                return;
-            }
-
-            using (SqlConnection con = new SqlConnection(ConnectionString))
-            {
-                con.Open();
-
-                SqlCommand cmd = new SqlCommand(
-                    "DELETE FROM Account WHERE StudentID=@OriginalStudentID", con);
-
-                cmd.Parameters.AddWithValue("@OriginalStudentID", this.originalStudentID);
-
-                int rowsAffected = cmd.ExecuteNonQuery();
-                if (rowsAffected > 0)
-                {
-                    MessageBox.Show("Account account has been deleted.");
-                }
-                else
-                {
-                    MessageBox.Show("Delete failed.");
-                }
-
-                tbFirstNameA.Clear();
-                tbLastNameA.Clear();
-                tbMiddleNameA.Clear();
-                tbStudentNumberA.Clear();
-                cbProgramA.SelectedIndex = -1;
-                tbPasswordA.Clear();
-
-            }
-
-            LoadAccountData();
-            this.originalStudentID = null;
-        }
-
-        private void guna2HtmlLabel4_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void mVotersP_Paint(object sender, PaintEventArgs e)
-        {
-
-        }
-
-        private void checkedListBox1_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void guna2HtmlLabel20_Click(object sender, EventArgs e)
-        {
-
         }
     }
 }
-
