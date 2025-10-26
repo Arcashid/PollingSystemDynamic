@@ -1,0 +1,43 @@
+C:\VotingSystem\VotingSystem\bin\Debug\VotingSystem.exe.config
+C:\VotingSystem\VotingSystem\bin\Debug\VotingSystem.exe
+C:\VotingSystem\VotingSystem\bin\Debug\VotingSystem.pdb
+C:\VotingSystem\VotingSystem\obj\Debug\VotingSystem.csproj.AssemblyReference.cache
+C:\VotingSystem\VotingSystem\obj\Debug\VotingSystem.AdminDashboard.resources
+C:\VotingSystem\VotingSystem\obj\Debug\VotingSystem.VotingSystem.resources
+C:\VotingSystem\VotingSystem\obj\Debug\VotingSystem.Properties.Resources.resources
+C:\VotingSystem\VotingSystem\obj\Debug\VotingSystem.csproj.GenerateResource.cache
+C:\VotingSystem\VotingSystem\obj\Debug\VotingSystem.csproj.CoreCompileInputs.cache
+C:\VotingSystem\VotingSystem\obj\Debug\VotingSystem.exe
+C:\VotingSystem\VotingSystem\obj\Debug\VotingSystem.pdb
+C:\VotingSystem\VotingSystem\bin\Debug\Guna.UI2.dll
+C:\VotingSystem\VotingSystem\obj\Debug\VotingSy.1FF55D8B.Up2Date
+C:\VotingSystem\VotingSystem\obj\Debug\VotingSystem.UserDashboard.resources
+C:\Users\CENT\Documents\System Project\VotingSystem\VotingSystem\bin\Debug\VotingSystem.exe.config
+C:\Users\CENT\Documents\System Project\VotingSystem\VotingSystem\bin\Debug\VotingSystem.exe
+C:\Users\CENT\Documents\System Project\VotingSystem\VotingSystem\bin\Debug\VotingSystem.pdb
+C:\Users\CENT\Documents\System Project\VotingSystem\VotingSystem\bin\Debug\Guna.UI2.dll
+C:\Users\CENT\Documents\System Project\VotingSystem\VotingSystem\obj\Debug\VotingSystem.csproj.AssemblyReference.cache
+C:\Users\CENT\Documents\System Project\VotingSystem\VotingSystem\obj\Debug\VotingSystem.AdminDashboard.resources
+C:\Users\CENT\Documents\System Project\VotingSystem\VotingSystem\obj\Debug\VotingSystem.VotingSystem.resources
+C:\Users\CENT\Documents\System Project\VotingSystem\VotingSystem\obj\Debug\VotingSystem.Properties.Resources.resources
+C:\Users\CENT\Documents\System Project\VotingSystem\VotingSystem\obj\Debug\VotingSystem.UserDashboard.resources
+C:\Users\CENT\Documents\System Project\VotingSystem\VotingSystem\obj\Debug\VotingSystem.csproj.GenerateResource.cache
+C:\Users\CENT\Documents\System Project\VotingSystem\VotingSystem\obj\Debug\VotingSystem.csproj.CoreCompileInputs.cache
+C:\Users\CENT\Documents\System Project\VotingSystem\VotingSystem\obj\Debug\VotingSy.1FF55D8B.Up2Date
+C:\Users\CENT\Documents\System Project\VotingSystem\VotingSystem\obj\Debug\VotingSystem.exe
+C:\Users\CENT\Documents\System Project\VotingSystem\VotingSystem\obj\Debug\VotingSystem.pdb
+C:\Users\CENT\Documents\System Project\VotingSystem\VotingSystem\obj\Debug\VotingSystem.exe.config
+C:\Users\Cent\Documents\PollingSystem\VotingSystem\VotingSystem\bin\Debug\VotingSystem.exe.config
+C:\Users\Cent\Documents\PollingSystem\VotingSystem\VotingSystem\bin\Debug\VotingSystem.exe
+C:\Users\Cent\Documents\PollingSystem\VotingSystem\VotingSystem\bin\Debug\VotingSystem.pdb
+C:\Users\Cent\Documents\PollingSystem\VotingSystem\VotingSystem\bin\Debug\Guna.UI2.dll
+C:\Users\Cent\Documents\PollingSystem\VotingSystem\VotingSystem\obj\Debug\VotingSystem.csproj.AssemblyReference.cache
+C:\Users\Cent\Documents\PollingSystem\VotingSystem\VotingSystem\obj\Debug\VotingSystem.AdminDashboard.resources
+C:\Users\Cent\Documents\PollingSystem\VotingSystem\VotingSystem\obj\Debug\VotingSystem.Properties.Resources.resources
+C:\Users\Cent\Documents\PollingSystem\VotingSystem\VotingSystem\obj\Debug\VotingSystem.UserDashboard.resources
+C:\Users\Cent\Documents\PollingSystem\VotingSystem\VotingSystem\obj\Debug\VotingSystem.csproj.GenerateResource.cache
+C:\Users\Cent\Documents\PollingSystem\VotingSystem\VotingSystem\obj\Debug\VotingSystem.csproj.CoreCompileInputs.cache
+C:\Users\Cent\Documents\PollingSystem\VotingSystem\VotingSystem\obj\Debug\VotingSy.1FF55D8B.Up2Date
+C:\Users\Cent\Documents\PollingSystem\VotingSystem\VotingSystem\obj\Debug\VotingSystem.exe
+C:\Users\Cent\Documents\PollingSystem\VotingSystem\VotingSystem\obj\Debug\VotingSystem.pdb
+C:\Users\Cent\Documents\PollingSystem\VotingSystem\VotingSystem\obj\Debug\VotingSystem.Form1.resources
