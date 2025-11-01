@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Guna.UI2.WinForms;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -259,12 +261,20 @@ namespace POLLINGSYSTEM
             }
         }
 
-        private void LoadVotersData()
+        private void LoadVotersData(String searchKey = "")
         {
+            SqlDataAdapter da;
             using (SqlConnection con = new SqlConnection(ConnectionString))
             {
-                SqlDataAdapter da = new SqlDataAdapter(
-                "SELECT StudentNo, Role, LastName, FirstName, MiddleName, Program FROM [dbo].[Voters]", con);
+                if (searchKey == "")
+                {
+                    da = new SqlDataAdapter("SELECT StudentNo, Role, LastName, FirstName, MiddleName, Program FROM [dbo].[Voters]", con);
+                }
+                else
+                {
+                    da = new SqlDataAdapter("SELECT StudentNo, Role, LastName, FirstName, MiddleName, Program FROM [dbo].[Voters] " +
+                        "where StudentNo like '%" + searchKey + "%' or LastName like '%" + searchKey + "%'", con);
+                }
 
                 DataTable dt = new DataTable();
                 da.Fill(dt);
@@ -292,11 +302,19 @@ namespace POLLINGSYSTEM
             UpdateProgramVisibility();
         }
 
-        private void LoadEventsData()
+        private void LoadEventsData(String searchKey = "")
         {
+            SqlDataAdapter da;
             using (SqlConnection con = new SqlConnection(ConnectionString))
             {
-                SqlDataAdapter da = new SqlDataAdapter("SELECT EventID, EventName, TeamGroup, TimeStart, TimeEnd, description FROM EventTb", con);
+                if (searchKey == "")
+                {
+                    da = new SqlDataAdapter("SELECT EventID, EventName, TeamGroup, TimeStart, TimeEnd, description FROM EventTb", con);
+                }
+                else
+                {
+                    da = new SqlDataAdapter("SELECT EventID, EventName, TeamGroup, TimeStart, TimeEnd, description FROM EventTb where EventName like '%" + searchKey + "%'", con);
+                }
 
                 DataTable dt = new DataTable();
                 da.Fill(dt);
@@ -551,11 +569,20 @@ namespace POLLINGSYSTEM
             }
         }
 
-        private void LoadParticipantsData()
+        private void LoadParticipantsData(String searchKey = "")
         {
+            SqlDataAdapter da;
             using (SqlConnection con = new SqlConnection(ConnectionString))
             {
-                SqlDataAdapter da = new SqlDataAdapter("SELECT StudentNo, LastName, FirstName, MiddleName, Program, Team, Event, position FROM Participants", con);
+                if (searchKey == "")
+                {
+                    da = new SqlDataAdapter("SELECT StudentNo, LastName, FirstName, MiddleName, Program, Team, Event, position FROM Participants", con);
+                }
+                else
+                {
+                    da = new SqlDataAdapter("SELECT StudentNo, LastName, FirstName, MiddleName, Program, Team, Event, position FROM Participants where StudentNo like '%" + searchKey + "%'", con);
+                }
+
 
                 DataTable dt = new DataTable();
                 da.Fill(dt);
@@ -1274,6 +1301,21 @@ namespace POLLINGSYSTEM
                     MessageBox.Show("Error loading history data: " + ex.Message, "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
+        }
+
+        private void guna2TextBox1_TextChanged(object sender, EventArgs e)
+        {
+            LoadParticipantsData(guna2TextBox1.Text);
+        }
+
+        private void guna2TextBox2_TextChanged(object sender, EventArgs e)
+        {
+            LoadEventsData(guna2TextBox2.Text);
+        }
+
+        private void guna2TextBox3_TextChanged(object sender, EventArgs e)
+        {
+            LoadVotersData(guna2TextBox3.Text);
         }
     }
 }

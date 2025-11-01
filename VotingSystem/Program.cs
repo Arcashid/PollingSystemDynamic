@@ -20,7 +20,7 @@ namespace VotingSystem
             Application.ThreadException += OnThreadException;
             AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
 
-            Application.Run(new AdminDashboard());
+            Application.Run(new VotingSystem());
         }
 
         private static void OnApplicationExit(object sender, EventArgs e)
