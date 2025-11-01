@@ -107,11 +107,12 @@ namespace VotingSystem
 
         private void LoadEventsIntoFlowPanel()
         {
+            Boolean hasEvents = false;
             flowLayoutPanel1.Controls.Clear();
             VotedTeam.Controls.Clear();
             DateTime now = DateTime.Now;
-            DateTime dtStart = new DateTime();
-            DateTime dtEnd = new DateTime();
+            DateTime dtStart;
+            DateTime dtEnd;
 
             using (SqlConnection conn = new SqlConnection(ConnectionString))
             {
@@ -134,23 +135,24 @@ namespace VotingSystem
                         {
                             dtStart = DateTime.Parse(reader["TimeStart"].ToString());
                             dtEnd = DateTime.Parse(reader["TimeEnd"].ToString());
-                            MessageBox.Show((dtStart >= now) + " - " + dtStart.ToString() + " - " + dtEnd.ToString() + " - " + now);
-                            if (dtStart >= now)
+                            if (dtStart.Date == now.Date && (now.TimeOfDay >= dtStart.TimeOfDay && dtEnd.TimeOfDay >= now.TimeOfDay))
                             {
+                                hasEvents = true;
                                 string name = reader["EventName"].ToString();
                                 string start = reader["TimeStart"].ToString();
                                 string end = reader["TimeEnd"].ToString();
                                 Panel eventPanel = CreateEventPanel(name, start, end);
                                 flowLayoutPanel1.Controls.Add(eventPanel);
                             }
-                            else
-                            {
-                                string name = "No data";
-                                string start = "No data";
-                                string end = "No data";
-                                Panel eventPanel = CreateEventPanel(name, start, end);
-                                flowLayoutPanel1.Controls.Add(eventPanel);
-                            }
+                        }
+
+                        if(!hasEvents)
+                        {
+                            string name = "No data";
+                            string start = "No data";
+                            string end = "No data";
+                            Panel eventPanel = CreateEventPanel(name, start, end);
+                            flowLayoutPanel1.Controls.Add(eventPanel);
                         }
                     }
 
