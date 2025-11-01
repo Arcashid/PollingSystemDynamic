@@ -29,9 +29,10 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(UserDashboard));
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle10 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle11 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle12 = new System.Windows.Forms.DataGridViewCellStyle();
             this.navigationP = new System.Windows.Forms.Panel();
             this.btnSignOut = new Guna.UI2.WinForms.Guna2GradientButton();
             this.btnHistory = new Guna.UI2.WinForms.Guna2GradientButton();
@@ -44,7 +45,7 @@
             this.guna2GradientPanel2 = new Guna.UI2.WinForms.Guna2GradientPanel();
             this.guna2GradientPanel6 = new Guna.UI2.WinForms.Guna2GradientPanel();
             this.guna2GradientPanel10 = new Guna.UI2.WinForms.Guna2GradientPanel();
-            this.flowLayoutPanel3 = new System.Windows.Forms.FlowLayoutPanel();
+            this.VotedTeam = new System.Windows.Forms.FlowLayoutPanel();
             this.guna2GradientPanel1 = new Guna.UI2.WinForms.Guna2GradientPanel();
             this.guna2GradientPanel3 = new Guna.UI2.WinForms.Guna2GradientPanel();
             this.guna2GradientPanel4 = new Guna.UI2.WinForms.Guna2GradientPanel();
@@ -68,7 +69,7 @@
             this.navigationP.SuspendLayout();
             this.HomePanel.SuspendLayout();
             this.flowLayoutPanel1.SuspendLayout();
-            this.flowLayoutPanel3.SuspendLayout();
+            this.VotedTeam.SuspendLayout();
             this.EventVoteProfile.SuspendLayout();
             this.guna2GradientPanel7.SuspendLayout();
             this.VotePanel.SuspendLayout();
@@ -176,7 +177,7 @@
             this.HomePanel.Controls.Add(this.guna2HtmlLabel11);
             this.HomePanel.Controls.Add(this.guna2HtmlLabel1);
             this.HomePanel.Controls.Add(this.flowLayoutPanel1);
-            this.HomePanel.Controls.Add(this.flowLayoutPanel3);
+            this.HomePanel.Controls.Add(this.VotedTeam);
             this.HomePanel.Location = new System.Drawing.Point(265, -1);
             this.HomePanel.Margin = new System.Windows.Forms.Padding(4);
             this.HomePanel.Name = "HomePanel";
@@ -210,7 +211,7 @@
             // flowLayoutPanel1
             // 
             this.flowLayoutPanel1.AutoScroll = true;
-            this.flowLayoutPanel1.BackColor = System.Drawing.Color.Black;
+            this.flowLayoutPanel1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(126)))), ((int)(((byte)(230)))));
             this.flowLayoutPanel1.Controls.Add(this.guna2GradientPanel2);
             this.flowLayoutPanel1.Controls.Add(this.guna2GradientPanel6);
             this.flowLayoutPanel1.Controls.Add(this.guna2GradientPanel10);
@@ -246,18 +247,18 @@
             this.guna2GradientPanel10.Size = new System.Drawing.Size(188, 102);
             this.guna2GradientPanel10.TabIndex = 4;
             // 
-            // flowLayoutPanel3
+            // VotedTeam
             // 
-            this.flowLayoutPanel3.BackColor = System.Drawing.Color.Black;
-            this.flowLayoutPanel3.Controls.Add(this.guna2GradientPanel1);
-            this.flowLayoutPanel3.Controls.Add(this.guna2GradientPanel3);
-            this.flowLayoutPanel3.Controls.Add(this.guna2GradientPanel4);
-            this.flowLayoutPanel3.ForeColor = System.Drawing.Color.Transparent;
-            this.flowLayoutPanel3.Location = new System.Drawing.Point(110, 462);
-            this.flowLayoutPanel3.Margin = new System.Windows.Forms.Padding(4);
-            this.flowLayoutPanel3.Name = "flowLayoutPanel3";
-            this.flowLayoutPanel3.Size = new System.Drawing.Size(585, 271);
-            this.flowLayoutPanel3.TabIndex = 5;
+            this.VotedTeam.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(126)))), ((int)(((byte)(230)))));
+            this.VotedTeam.Controls.Add(this.guna2GradientPanel1);
+            this.VotedTeam.Controls.Add(this.guna2GradientPanel3);
+            this.VotedTeam.Controls.Add(this.guna2GradientPanel4);
+            this.VotedTeam.ForeColor = System.Drawing.Color.Transparent;
+            this.VotedTeam.Location = new System.Drawing.Point(110, 462);
+            this.VotedTeam.Margin = new System.Windows.Forms.Padding(4);
+            this.VotedTeam.Name = "VotedTeam";
+            this.VotedTeam.Size = new System.Drawing.Size(585, 271);
+            this.VotedTeam.TabIndex = 5;
             // 
             // guna2GradientPanel1
             // 
@@ -313,6 +314,7 @@
             this.guna2ImageButton1.BackColor = System.Drawing.SystemColors.Window;
             this.guna2ImageButton1.CheckedState.ImageSize = new System.Drawing.Size(64, 64);
             this.guna2ImageButton1.HoverState.ImageSize = new System.Drawing.Size(64, 64);
+            this.guna2ImageButton1.Image = ((System.Drawing.Image)(resources.GetObject("guna2ImageButton1.Image")));
             this.guna2ImageButton1.ImageOffset = new System.Drawing.Point(0, 0);
             this.guna2ImageButton1.ImageRotate = 0F;
             this.guna2ImageButton1.Location = new System.Drawing.Point(119, 45);
@@ -402,20 +404,19 @@
             this.panelHistory.Name = "panelHistory";
             this.panelHistory.Size = new System.Drawing.Size(799, 774);
             this.panelHistory.TabIndex = 15;
-            this.panelHistory.Paint += new System.Windows.Forms.PaintEventHandler(this.panelHistory_Paint);
             // 
             // guna2DataGridView1
             // 
-            dataGridViewCellStyle1.BackColor = System.Drawing.Color.White;
-            this.guna2DataGridView1.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
-            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(88)))), ((int)(((byte)(255)))));
-            dataGridViewCellStyle2.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle2.ForeColor = System.Drawing.Color.White;
-            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.guna2DataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle10.BackColor = System.Drawing.Color.White;
+            this.guna2DataGridView1.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle10;
+            dataGridViewCellStyle11.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle11.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(88)))), ((int)(((byte)(255)))));
+            dataGridViewCellStyle11.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle11.ForeColor = System.Drawing.Color.White;
+            dataGridViewCellStyle11.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle11.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle11.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.guna2DataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle11;
             this.guna2DataGridView1.ColumnHeadersHeight = 19;
             this.guna2DataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.EnableResizing;
             this.guna2DataGridView1.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
@@ -423,14 +424,14 @@
             this.Participant,
             this.Time,
             this.Date});
-            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle3.BackColor = System.Drawing.Color.White;
-            dataGridViewCellStyle3.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle3.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(71)))), ((int)(((byte)(69)))), ((int)(((byte)(94)))));
-            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(231)))), ((int)(((byte)(229)))), ((int)(((byte)(255)))));
-            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(71)))), ((int)(((byte)(69)))), ((int)(((byte)(94)))));
-            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.guna2DataGridView1.DefaultCellStyle = dataGridViewCellStyle3;
+            dataGridViewCellStyle12.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle12.BackColor = System.Drawing.Color.White;
+            dataGridViewCellStyle12.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle12.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(71)))), ((int)(((byte)(69)))), ((int)(((byte)(94)))));
+            dataGridViewCellStyle12.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(231)))), ((int)(((byte)(229)))), ((int)(((byte)(255)))));
+            dataGridViewCellStyle12.SelectionForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(71)))), ((int)(((byte)(69)))), ((int)(((byte)(94)))));
+            dataGridViewCellStyle12.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.guna2DataGridView1.DefaultCellStyle = dataGridViewCellStyle12;
             this.guna2DataGridView1.GridColor = System.Drawing.Color.FromArgb(((int)(((byte)(231)))), ((int)(((byte)(229)))), ((int)(((byte)(255)))));
             this.guna2DataGridView1.Location = new System.Drawing.Point(9, 21);
             this.guna2DataGridView1.Name = "guna2DataGridView1";
@@ -504,7 +505,7 @@
             this.HomePanel.ResumeLayout(false);
             this.HomePanel.PerformLayout();
             this.flowLayoutPanel1.ResumeLayout(false);
-            this.flowLayoutPanel3.ResumeLayout(false);
+            this.VotedTeam.ResumeLayout(false);
             this.EventVoteProfile.ResumeLayout(false);
             this.guna2GradientPanel7.ResumeLayout(false);
             this.VotePanel.ResumeLayout(false);
@@ -541,7 +542,7 @@
         private Guna.UI2.WinForms.Guna2GradientPanel guna2GradientPanel6;
         private Guna.UI2.WinForms.Guna2GradientPanel guna2GradientPanel10;
         private Guna.UI2.WinForms.Guna2HtmlLabel guna2HtmlLabel11;
-        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel3;
+        private System.Windows.Forms.FlowLayoutPanel VotedTeam;
         private Guna.UI2.WinForms.Guna2GradientPanel guna2GradientPanel1;
         private Guna.UI2.WinForms.Guna2GradientPanel guna2GradientPanel3;
         private Guna.UI2.WinForms.Guna2GradientPanel guna2GradientPanel4;

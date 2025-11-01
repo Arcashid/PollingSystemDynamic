@@ -134,7 +134,7 @@ namespace VotingSystem
                         {
                             dtStart = DateTime.Parse(reader["TimeStart"].ToString());
                             dtEnd = DateTime.Parse(reader["TimeEnd"].ToString());
-                            MessageBox.Show((dtStart > now) + " - " + dtStart.ToString() + " - " + dtEnd.ToString() + " - " + now);
+                            MessageBox.Show((dtStart >= now) + " - " + dtStart.ToString() + " - " + dtEnd.ToString() + " - " + now);
                             if (dtStart >= now)
                             {
                                 string name = reader["EventName"].ToString();
