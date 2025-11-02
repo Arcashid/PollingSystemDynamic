@@ -71,6 +71,7 @@ namespace VotingSystem
                         {
                             case "Admin":
                                 AdminDashboard adminDash = new AdminDashboard();
+                                adminDash.CurrentUser = currentUser;
                                 adminDash.Show(); object check1 = check;
                                 this.Hide();
                                 break;

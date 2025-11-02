@@ -500,6 +500,12 @@ namespace VotingSystem
                                     MessageBox.Show($"Successfully voted for: {teamToVoteFor} in {currentEvent}!",
                                         "Vote Confirmed", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
+                                    LogActivity(
+                                        "Vote",
+                                        $"User {StudentID} voted '{teamToVoteFor}' in event '{currentEvent}'.",
+                                        currentEvent,
+                                        teamToVoteFor);
+
                                     LoadEventsIntoFlowPanel();
                                     HomePanel.Visible = true;
                                     VotePanel.Visible = false;
@@ -726,6 +732,39 @@ namespace VotingSystem
         {
             StopRefreshLoop();
             base.OnFormClosed(e);
+        }
+
+        private void LogActivity(string action, string details, string eventName = null, string teamName = null)
+        {
+            try
+            {
+                using (var con = new SqlConnection(ConnectionString))
+                using (var cmd = new SqlCommand(
+                    @"IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'AuditLog' AND type = 'U')
+                      BEGIN
+                        CREATE TABLE dbo.AuditLog(
+                            LogId INT IDENTITY(1,1) PRIMARY KEY,
+                            StudentNo INT NULL,
+                            [Action] NVARCHAR(100) NOT NULL,
+                            [Details] NVARCHAR(1000) NULL,
+                            EventName NVARCHAR(255) NULL,
+                            TeamName NVARCHAR(255) NULL,
+                            OccurredAt DATETIME NOT NULL CONSTRAINT DF_AuditLog_OccurredAt DEFAULT (GETDATE())
+                        );
+                      END;
+                      INSERT INTO dbo.AuditLog(StudentNo,[Action],[Details],EventName,TeamName)
+                      VALUES (@StudentNo,@Action,@Details,@EventName,@TeamName);", con))
+                {
+                    cmd.Parameters.AddWithValue("@StudentNo", StudentID == 0 ? (object)DBNull.Value : StudentID);
+                    cmd.Parameters.AddWithValue("@Action", action ?? "Unknown");
+                    cmd.Parameters.AddWithValue("@Details", (object)details ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@EventName", string.IsNullOrWhiteSpace(eventName) ? (object)DBNull.Value : eventName);
+                    cmd.Parameters.AddWithValue("@TeamName", string.IsNullOrWhiteSpace(teamName) ? (object)DBNull.Value : teamName);
+                    con.Open();
+                    cmd.ExecuteNonQuery();
+                }
+            }
+            catch { }
         }
     }
 }
