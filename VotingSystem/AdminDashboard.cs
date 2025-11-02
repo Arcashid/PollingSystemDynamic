@@ -34,7 +34,8 @@ namespace POLLINGSYSTEM
         private const string ConnectionString = @"Data Source=DESKTOP-RVB0L7Q\SQLEXPRESS;Initial Catalog=POLLINGSYSTEM;Integrated Security=True;Encrypt=False";
 
         private string currentStudID = "";
-
+        private string currentStudEvent = "";
+        private string currentStudTeam = "";
         private string currentAccountStudID = "";
 
         private Timer dashboardTimer;
@@ -286,7 +287,7 @@ namespace POLLINGSYSTEM
                 tbPassword.PasswordChar = '•';  // hide
             }
         }
-            
+
         private void LoadVotersData(String searchKey = "")
         {
             SqlDataAdapter da;
@@ -295,7 +296,9 @@ namespace POLLINGSYSTEM
                 if (searchKey == "")
                 {
                     da = new SqlDataAdapter("SELECT StudentNo, Role, LastName, FirstName, MiddleName, Program FROM [dbo].[Voters]", con);
-                } else {
+                }
+                else
+                {
                     da = new SqlDataAdapter("SELECT StudentNo, Role, LastName, FirstName, MiddleName, Program FROM [dbo].[Voters] " +
                         "where StudentNo like '%" + searchKey + "%' or LastName like '%" + searchKey + "%'", con);
                 }
@@ -631,50 +634,101 @@ namespace POLLINGSYSTEM
 
         private void btnDeleteEvent_Click_1(object sender, EventArgs e)
         {
-            if (EventTableData.SelectedRows.Count == 0 || string.IsNullOrWhiteSpace(tbEventID.Text))
+            // Validate selection from the Events grid
+            if (!int.TryParse(tbEventID.Text, out var eventId) ||
+                string.IsNullOrWhiteSpace(tbEventName.Text) ||
+                string.IsNullOrWhiteSpace(tbTeam.Text))
             {
-                MessageBox.Show("Please select an event to delete, and ensure Event ID is loaded.");
+                MessageBox.Show("Please select an event row (ID, Name, and Team) to delete.", 
+                    "Missing selection", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            if (!int.TryParse(tbEventID.Text, out int eventIdToDelete))
-            {
-                MessageBox.Show("Invalid Event ID format.");
-                return;
-            }
+            string eventName = tbEventName.Text.Trim();
+            string teamName  = tbTeam.Text.Trim();
+
+            var confirm = MessageBox.Show(
+                $"Delete event?\n\nID: {eventId}\nName: {eventName}\nTeam: {teamName}\n\n" +
+                "This will also remove related participants and history for this event/team.",
+                "Confirm Deletion", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+            if (confirm != DialogResult.Yes) return;
 
             try
             {
-                using (SqlConnection con = new SqlConnection(ConnectionString))
+                using (var con = new SqlConnection(ConnectionString))
                 {
                     con.Open();
-                    SqlCommand cmd = new SqlCommand("DELETE FROM EventTb WHERE EventID=@EventID", con);
-                    cmd.Parameters.AddWithValue("@EventID", eventIdToDelete);
-
-                    int rowsAffected = cmd.ExecuteNonQuery();
-                    if (rowsAffected > 0)
+                    using (var tx = con.BeginTransaction())
                     {
-                        LogActivity(
-                            "DeleteEvent",
-                            $"User {this.CurrentUser} deleted event ID {eventIdToDelete}.",
-                            null,
-                            null);
+                        try
+                        {
+                            // Remove dependent rows first (no FK constraints in schema)
+                            using (var cmdP = new SqlCommand(
+                                @"DELETE FROM dbo.Participants 
+                                  WHERE [Event] = @EventName AND [Team] = @TeamName", con, tx))
+                            {
+                                cmdP.Parameters.AddWithValue("@EventName", eventName);
+                                cmdP.Parameters.AddWithValue("@TeamName", teamName);
+                                cmdP.ExecuteNonQuery();
+                            }
+
+                            using (var cmdH = new SqlCommand(
+                                @"DELETE FROM dbo.History 
+                                  WHERE [EventName] = @EventName AND [TeamName] = @TeamName", con, tx))
+                            {
+                                cmdH.Parameters.AddWithValue("@EventName", eventName);
+                                cmdH.Parameters.AddWithValue("@TeamName", teamName);
+                                cmdH.ExecuteNonQuery();
+                            }
+
+                            // Finally delete the event row
+                            using (var cmdE = new SqlCommand(
+                                @"DELETE FROM dbo.EventTb WHERE EventID = @EventID", con, tx))
+                            {
+                                cmdE.Parameters.AddWithValue("@EventID", eventId);
+                                int rows = cmdE.ExecuteNonQuery();
+                                if (rows == 0)
+                                {
+                                    tx.Rollback();
+                                    MessageBox.Show("No event found with the selected ID.", 
+                                        "Deletion Failed", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                    return;
+                                }
+                            }
+
+                            tx.Commit();
+                        }
+                        catch
+                        {
+                            tx.Rollback();
+                            throw;
+                        }
                     }
-
-                    MessageBox.Show(rowsAffected > 0 ? "Event deleted successfully from the database."
-                                                 : "No event found with the selected ID to delete.");
-
-                    LoadEventsData();
-                    UpdateTotalEventLabel();
-                    UpdateEventDropdown();
                 }
+
+                LogActivity(
+                    "DeleteEvent",
+                    $"User {this.CurrentUser} deleted event '{eventName}' (Team '{teamName}', ID {eventId}).",
+                    eventName, teamName);
+
+                MessageBox.Show("Event deleted successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                LoadEventsData();
+                UpdateTotalEventLabel();
+                UpdateEventDropdown();
+                ClearFields();
+            }
+            catch (SqlException ex)
+            {
+                MessageBox.Show("Database error deleting event: " + ex.Message, 
+                    "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error deleting event: " + ex.Message);
+                MessageBox.Show("Error deleting event: " + ex.Message, 
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-
-            ClearFields();
         }
 
         private void EventTableData_CellContentClick_1(object sender, DataGridViewCellEventArgs e)
@@ -804,8 +858,9 @@ namespace POLLINGSYSTEM
 
             // Trackers
             currentStudID = string.Empty;
+            currentStudEvent = string.Empty;
+            currentStudTeam = string.Empty;
 
-            // Keep the toggle button aligned after layout changes
             PositionTogglePasswordButton();
         }
 
@@ -826,24 +881,24 @@ namespace POLLINGSYSTEM
                 string eventName = row.Cells["Event"].Value?.ToString().Trim();
                 string teamName = row.Cells["Team"].Value?.ToString().Trim();
 
+                // Track original keys for update/delete
+                currentStudEvent = eventName ?? string.Empty;
+                currentStudTeam = teamName ?? string.Empty;
+
                 int eventIndex = cbEvent.Items.IndexOf(eventName);
-                if (eventIndex >= 0)
-                    cbEvent.SelectedIndex = eventIndex;
-                else
-                    cbEvent.SelectedIndex = -1;
+                cbEvent.SelectedIndex = eventIndex >= 0 ? eventIndex : -1;
 
                 if (!string.IsNullOrEmpty(teamName))
                 {
                     if (cbEvent.SelectedItem != null)
-                    {
                         FilterAndPopulateTeamDropdown(cbEvent.SelectedItem.ToString());
-                    }
 
                     int teamIndex = cbTeam.Items.IndexOf(teamName);
-                    if (teamIndex >= 0)
-                        cbTeam.SelectedIndex = teamIndex;
-                    else
-                        cbTeam.SelectedIndex = -1;
+                    cbTeam.SelectedIndex = teamIndex >= 0 ? teamIndex : -1;
+                }
+                else
+                {
+                    cbTeam.SelectedIndex = -1;
                 }
             }
         }
@@ -851,142 +906,180 @@ namespace POLLINGSYSTEM
         private void btnAdd_Click(object sender, EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(tbStudentNum.Text) ||
-            string.IsNullOrWhiteSpace(tbLastName.Text) ||
-            string.IsNullOrWhiteSpace(tbFirstName.Text) ||
-            string.IsNullOrWhiteSpace(cbProgram.Text) ||
-            string.IsNullOrWhiteSpace(cbEvent.Text) ||
-            string.IsNullOrWhiteSpace(cbTeam.Text))
+                string.IsNullOrWhiteSpace(tbLastName.Text) ||
+                string.IsNullOrWhiteSpace(tbFirstName.Text) ||
+                string.IsNullOrWhiteSpace(cbProgram.Text) ||
+                string.IsNullOrWhiteSpace(cbEvent.Text) ||
+                string.IsNullOrWhiteSpace(cbTeam.Text))
             {
-
                 MessageBox.Show(
-                "Please fill out all required fields: Student Number, Last Name, First Name, Program, Event, and Team.",
-                "Missing Information",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Warning
-                );
+                    "Please fill out all required fields: Student Number, Last Name, First Name, Program, Event, and Team.",
+                    "Missing Information",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
                 return;
             }
+
             try
             {
                 using (SqlConnection con = new SqlConnection(ConnectionString))
                 {
                     con.Open();
-                    SqlCommand cmd = new SqlCommand(
-                    "INSERT INTO [dbo].[Participants] " +
-                    "([StudentNo], [LastName], [FirstName], [MiddleName], [Program], [Event], [Team], [position]) " +
-                    "VALUES (@studID, @tbLastName, @tbFirstName, @tbMiddleName, @cbProgram, @cbEvent, @cbTeam, @position)",
-                    con);
 
+                    // Prevent duplicate (StudentNo, Event, Team) memberships
+                    using (var dup = new SqlCommand(
+                        @"SELECT COUNT(1)
+                          FROM dbo.Participants
+                          WHERE StudentNo=@StudentNo AND Event=@Event AND Team=@Team", con))
+                    {
+                        dup.Parameters.AddWithValue("@StudentNo", tbStudentNum.Text.Trim());
+                        dup.Parameters.AddWithValue("@Event", cbEvent.Text.Trim());
+                        dup.Parameters.AddWithValue("@Team", cbTeam.Text.Trim());
 
-                    cmd.Parameters.AddWithValue("@studID", tbStudentNum.Text.Trim());
-                    cmd.Parameters.AddWithValue("@tbLastName", tbLastName.Text.Trim());
-                    cmd.Parameters.AddWithValue("@tbFirstName", tbFirstName.Text.Trim());
-                    cmd.Parameters.AddWithValue("@tbMiddleName", tbMiddleName.Text.Trim());
-                    cmd.Parameters.AddWithValue("@cbProgram", cbProgram.Text.Trim());
-                    cmd.Parameters.AddWithValue("@cbEvent", cbEvent.Text);
-                    cmd.Parameters.AddWithValue("@cbTeam", cbTeam.Text);
-                    cmd.Parameters.AddWithValue("@position", tbPosition.Text);
+                        if ((int)dup.ExecuteScalar() > 0)
+                        {
+                            MessageBox.Show("This student is already registered for the same Event and Team.",
+                                "Duplicate membership", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            return;
+                        }
+                    }
 
-                    cmd.ExecuteNonQuery();
-                    MessageBox.Show("Successfully saved participant details.");
+                    using (SqlCommand cmd = new SqlCommand(
+                        @"INSERT INTO [dbo].[Participants]
+                          ([StudentNo],[LastName],[FirstName],[MiddleName],[Program],[Event],[Team],[position])
+                          VALUES (@studID,@tbLastName,@tbFirstName,@tbMiddleName,@cbProgram,@cbEvent,@cbTeam,@position)", con))
+                    {
+                        cmd.Parameters.AddWithValue("@studID", tbStudentNum.Text.Trim());
+                        cmd.Parameters.AddWithValue("@tbLastName", tbLastName.Text.Trim());
+                        cmd.Parameters.AddWithValue("@tbFirstName", tbFirstName.Text.Trim());
+                        cmd.Parameters.AddWithValue("@tbMiddleName", (object)tbMiddleName.Text.Trim() ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@cbProgram", cbProgram.Text.Trim());
+                        cmd.Parameters.AddWithValue("@cbEvent", cbEvent.Text.Trim());
+                        cmd.Parameters.AddWithValue("@cbTeam", cbTeam.Text.Trim());
+                        cmd.Parameters.AddWithValue("@position", (object)tbPosition.Text ?? DBNull.Value);
 
-                    LogActivity(
-                        "AddParticipant",
-                        $"User {this.CurrentUser} saved new participant '{tbStudentNum.Text.Trim()}' - {tbLastName.Text.Trim()}, {tbFirstName.Text.Trim()} ({cbProgram.Text.Trim()})",
-                        cbEvent.Text,
-                        cbTeam.Text);
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    MessageBox.Show("Successfully saved participant membership.");
+                    LogActivity("AddParticipant",
+                        $"User {this.CurrentUser} registered '{tbStudentNum.Text.Trim()}' to '{cbEvent.Text}' - '{cbTeam.Text}'.",
+                        cbEvent.Text, cbTeam.Text);
 
                     LoadParticipantsData();
                     UpdateTotalEventLabel();
                     UpdateEventDropdown();
-                }
-            }
-            catch (SqlException sqlex)
-            {
-                if (sqlex.Number == 2627)
-                {
-                    MessageBox.Show($"Error: Student Number '{tbStudentNum.Text.Trim()}' already exists.", "Duplicate Student ID", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-                else
-                {
-                    MessageBox.Show("Database Error: " + sqlex.Message);
                 }
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Error adding participant: " + ex.Message);
             }
+
             ClearFields();
         }
 
         private void btnUpdate_Click(object sender, EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(tbStudentNum.Text) ||
-            string.IsNullOrWhiteSpace(tbLastName.Text) ||
-            string.IsNullOrWhiteSpace(tbFirstName.Text) ||
-            string.IsNullOrWhiteSpace(cbProgram.Text) ||
-            string.IsNullOrWhiteSpace(cbEvent.Text) ||
-            string.IsNullOrWhiteSpace(cbTeam.Text) ||
-            string.IsNullOrWhiteSpace(currentStudID))
+        string.IsNullOrWhiteSpace(tbLastName.Text) ||
+        string.IsNullOrWhiteSpace(tbFirstName.Text) ||
+        string.IsNullOrWhiteSpace(cbProgram.Text) ||
+        string.IsNullOrWhiteSpace(cbEvent.Text) ||
+        string.IsNullOrWhiteSpace(cbTeam.Text) ||
+        string.IsNullOrWhiteSpace(currentStudID) ||
+        string.IsNullOrWhiteSpace(currentStudEvent) ||
+        string.IsNullOrWhiteSpace(currentStudTeam))
             {
-
-                MessageBox.Show(
-                "Please select a participant, and fill out all required fields.",
-                "Missing Information",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Warning
-                );
+                MessageBox.Show("Please select a membership (row) to update, and fill out all required fields.",
+                    "Missing Information", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
+
             try
             {
                 using (SqlConnection con = new SqlConnection(ConnectionString))
                 {
                     con.Open();
-                    SqlCommand cmd = new SqlCommand(
-                    "UPDATE [dbo].[Participants] SET " +
-                    "[StudentNo] = @studID, " +
-                    "[LastName] = @tbLastName, " +
-                    "[FirstName] = @tbFirstName, " +
-                    "[MiddleName] = @tbMiddleName, " +
-                    "[Program] = @cbProgram, " +
-                    "[Event] = @cbEvent, " +
-                    "[Team] = @cbTeam " +
-                    " WHERE [StudentNo] = @currentStudID", con);
 
-                    cmd.Parameters.AddWithValue("@studID", tbStudentNum.Text.Trim());
-                    cmd.Parameters.AddWithValue("@tbLastName", tbLastName.Text.Trim());
-                    cmd.Parameters.AddWithValue("@tbFirstName", tbFirstName.Text.Trim());
-                    cmd.Parameters.AddWithValue("@tbMiddleName", tbMiddleName.Text.Trim());
-                    cmd.Parameters.AddWithValue("@cbProgram", cbProgram.Text.Trim());
-                    cmd.Parameters.AddWithValue("@cbEvent", cbEvent.Text);
-                    cmd.Parameters.AddWithValue("@cbTeam", cbTeam.Text);
-                    cmd.Parameters.AddWithValue("@currentStudID", currentStudID.Trim());
-
-                    int rows = cmd.ExecuteNonQuery();
-                    if (rows > 0)
+                    // If keys changed, prevent duplicate to another existing membership
+                    using (var dup = new SqlCommand(
+                        @"SELECT COUNT(1)
+                  FROM dbo.Participants
+                  WHERE StudentNo=@NewStudentNo AND Event=@NewEvent AND Team=@NewTeam
+                    AND NOT (StudentNo=@OldStudentNo AND Event=@OldEvent AND Team=@OldTeam)", con))
                     {
-                        LogActivity(
-                            "UpdateParticipant",
-                            $"User {this.CurrentUser} updated participant '{currentStudID}' -> '{tbStudentNum.Text.Trim()}'.",
-                            cbEvent.Text,
-                            cbTeam.Text);
-                        MessageBox.Show("Successfully updated participant details.");
+                        dup.Parameters.AddWithValue("@NewStudentNo", tbStudentNum.Text.Trim());
+                        dup.Parameters.AddWithValue("@NewEvent", cbEvent.Text.Trim());
+                        dup.Parameters.AddWithValue("@NewTeam", cbTeam.Text.Trim());
+                        dup.Parameters.AddWithValue("@OldStudentNo", currentStudID.Trim());
+                        dup.Parameters.AddWithValue("@OldEvent", currentStudEvent.Trim());
+                        dup.Parameters.AddWithValue("@OldTeam", currentStudTeam.Trim());
+
+                        if ((int)dup.ExecuteScalar() > 0)
+                        {
+                            MessageBox.Show("Another membership already exists with the same Student, Event and Team.",
+                                "Duplicate membership", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            return;
+                        }
                     }
-                    else
+
+                    using (SqlCommand cmd = new SqlCommand(
+                        @"UPDATE [dbo].[Participants] SET
+                        [StudentNo] = @studID,
+                        [LastName]  = @tbLastName,
+                        [FirstName] = @tbFirstName,
+                        [MiddleName]= @tbMiddleName,
+                        [Program]   = @cbProgram,
+                        [Event]     = @cbEvent,
+                        [Team]      = @cbTeam,
+                        [position]  = @position
+                  WHERE [StudentNo] = @currentStudID AND [Event] = @currentEvent AND [Team] = @currentTeam", con))
                     {
-                        MessageBox.Show("No participant found with the original Student ID to update.", "Update Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        cmd.Parameters.AddWithValue("@studID", tbStudentNum.Text.Trim());
+                        cmd.Parameters.AddWithValue("@tbLastName", tbLastName.Text.Trim());
+                        cmd.Parameters.AddWithValue("@tbFirstName", tbFirstName.Text.Trim());
+                        cmd.Parameters.AddWithValue("@tbMiddleName", (object)tbMiddleName.Text.Trim() ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@cbProgram", cbProgram.Text.Trim());
+                        cmd.Parameters.AddWithValue("@cbEvent", cbEvent.Text.Trim());
+                        cmd.Parameters.AddWithValue("@cbTeam", cbTeam.Text.Trim());
+                        cmd.Parameters.AddWithValue("@position", (object)tbPosition.Text ?? DBNull.Value);
+
+                        cmd.Parameters.AddWithValue("@currentStudID", currentStudID.Trim());
+                        cmd.Parameters.AddWithValue("@currentEvent", currentStudEvent.Trim());
+                        cmd.Parameters.AddWithValue("@currentTeam", currentStudTeam.Trim());
+
+                        int rows = cmd.ExecuteNonQuery();
+                        if (rows > 0)
+                        {
+                            LogActivity("UpdateParticipant",
+                                $"User {this.CurrentUser} updated membership '{currentStudID} | {currentStudEvent} | {currentStudTeam}' " +
+                                $"-> '{tbStudentNum.Text.Trim()} | {cbEvent.Text} | {cbTeam.Text}'.",
+                                cbEvent.Text, cbTeam.Text);
+                            MessageBox.Show("Successfully updated participant membership.");
+                        }
+                        else
+                        {
+                            MessageBox.Show("No membership found to update.", "Update Failed",
+                                MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
                     }
 
                     LoadParticipantsData();
                     UpdateTotalEventLabel();
                     UpdateEventDropdown();
+
+                    // Refresh current keys to new values
+                    currentStudID = tbStudentNum.Text.Trim();
+                    currentStudEvent = cbEvent.Text.Trim();
+                    currentStudTeam = cbTeam.Text.Trim();
                 }
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Error updating participant: " + ex.Message);
             }
+
             ClearFields();
         }
 
@@ -1657,7 +1750,7 @@ SELECT [LogId]
             EventHistoryData.Columns.AddRange(new DataGridViewColumn[] { colId, colAction, colDetails, colOccurred });
         }
 
-    private void votersData_CellClick(object sender, DataGridViewCellEventArgs e)
+        private void votersData_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0) return;
             var row = votersData.Rows[e.RowIndex];
@@ -1675,8 +1768,8 @@ SELECT [LogId]
         private void FillAccountFieldsFromRow(DataGridViewRow row)
         {
             tbStudentNumberAcc.Text = Convert.ToString(row.Cells["StudentNo"].Value);
-            tbLastNameAcc.Text      = Convert.ToString(row.Cells["LastName"].Value);
-            tbFirstNameAcc.Text     = Convert.ToString(row.Cells["FirstName"].Value);
+            tbLastNameAcc.Text = Convert.ToString(row.Cells["LastName"].Value);
+            tbFirstNameAcc.Text = Convert.ToString(row.Cells["FirstName"].Value);
 
             var middle = row.Cells["MiddleName"].Value;
             tbMiddleNameAcc.Text = middle == null || middle == DBNull.Value ? string.Empty : Convert.ToString(middle);
@@ -1693,48 +1786,44 @@ SELECT [LogId]
             cbProgramAcc.SelectedIndex = progIndex;
             if (progIndex == -1) cbProgramAcc.Text = program;
 
-            // Load password from DB for selected StudentNo
             var pwd = GetPasswordForStudent(tbStudentNumberAcc.Text?.Trim());
             tbPassword.Text = pwd ?? string.Empty;
-            //tbPassword.PasswordChar = '•';
 
             currentAccountStudID = tbStudentNumberAcc.Text?.Trim();
             UpdateProgramVisibility();
         }
 
         private string GetPasswordForStudent(string studentNo)
-{
-    if (string.IsNullOrWhiteSpace(studentNo)) return string.Empty;
-
-    try
-    {
-        using (var con = new SqlConnection(ConnectionString))
-        using (var cmd = new SqlCommand("SELECT [Password] FROM [dbo].[Voters] WHERE StudentNo = @StudentNo", con))
         {
-            cmd.Parameters.AddWithValue("@StudentNo", studentNo);
-            con.Open();
-            var result = cmd.ExecuteScalar();
-            return result == null || result == DBNull.Value ? string.Empty : Convert.ToString(result);
+            if (string.IsNullOrWhiteSpace(studentNo)) return string.Empty;
+
+            try
+            {
+                using (var con = new SqlConnection(ConnectionString))
+                using (var cmd = new SqlCommand("SELECT [Password] FROM [dbo].[Voters] WHERE StudentNo = @StudentNo", con))
+                {
+                    cmd.Parameters.AddWithValue("@StudentNo", studentNo);
+                    con.Open();
+                    var result = cmd.ExecuteScalar();
+                    return result == null || result == DBNull.Value ? string.Empty : Convert.ToString(result);
+                }
+            }
+            catch
+            {
+                return string.Empty;
+            }
         }
-    }
-    catch
-    {
-        // Avoid breaking UI if lookup fails
-        return string.Empty;
-    }   
-}
 
-private void PositionTogglePasswordButton()
-{
-    if (btnTogglePassword == null || tbPassword == null) return;
+        private void PositionTogglePasswordButton()
+        {
+            if (btnTogglePassword == null || tbPassword == null) return;
+            var paddingRight = 6;
+            var x = tbPassword.Right - btnTogglePassword.Width - paddingRight;
+            var y = tbPassword.Top + (tbPassword.Height - btnTogglePassword.Height) / 2;
 
-    // Place the button inside the right edge of tbPassword with small padding
-    var paddingRight = 6;
-    var x = tbPassword.Right - btnTogglePassword.Width - paddingRight;
-    var y = tbPassword.Top + (tbPassword.Height - btnTogglePassword.Height) / 2;
+            btnTogglePassword.Location = new Point(x, y);
+            btnTogglePassword.BringToFront();
 
-    btnTogglePassword.Location = new Point(x, y);
-    btnTogglePassword.BringToFront();
-}
+        }
     }
 }
