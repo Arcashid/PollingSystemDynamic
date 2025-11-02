@@ -1489,7 +1489,18 @@ namespace POLLINGSYSTEM
                 ForeColor = Color.Black
             };
 
-            chartEvent.Titles.Insert(0, header); // ensure it appears above other titles
+            // Date at upper-right
+            var dateTitle = new System.Windows.Forms.DataVisualization.Charting.Title
+            {
+                Text = DateTime.Now.ToString("MM/dd/yyyy hh:mm tt"),
+                Docking = System.Windows.Forms.DataVisualization.Charting.Docking.Top,
+                Alignment = ContentAlignment.TopRight,
+                Font = new Font("Segoe UI", 10f, FontStyle.Regular),
+                ForeColor = Color.Black
+            };
+
+            chartEvent.Titles.Insert(0, header);
+            chartEvent.Titles.Add(dateTitle);
 
             try
             {
@@ -1497,9 +1508,11 @@ namespace POLLINGSYSTEM
             }
             finally
             {
-                // Clean up so the extra header doesn’t remain on the live chart
+                // Clean up so the extras don’t remain on the live chart
                 chartEvent.Titles.Remove(header);
+                chartEvent.Titles.Remove(dateTitle);
                 header.Dispose();
+                dateTitle.Dispose();
             }
         }
 
