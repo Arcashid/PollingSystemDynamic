@@ -39,6 +39,8 @@ namespace POLLINGSYSTEM
         private Timer dashboardTimer;
         internal string CurrentUser;
 
+        private Guna2Button btnTogglePassword;
+
         public AdminDashboard()
         {
             InitializeComponent();
@@ -50,6 +52,25 @@ namespace POLLINGSYSTEM
             this.cbRoleAcc.SelectedIndexChanged += new System.EventHandler(this.cbRoleAcc_SelectedIndexChanged);
             UpdateProgramVisibility();
 
+            btnTogglePassword = new Guna2Button
+            {
+                Name = "btnTogglePassword",
+                Size = new Size(28, 28),
+                BorderRadius = 14,
+                FillColor = Color.White,
+                ForeColor = Color.DimGray,
+                Font = new Font("Segoe UI", 9F, FontStyle.Bold),
+                Text = "👁",
+                BackColor = Color.White
+            };
+            btnTogglePassword.Click += btnTogglePassword_Click;
+
+            AccountPanel.Controls.Add(btnTogglePassword);
+            PositionTogglePasswordButton();
+
+            tbPassword.SizeChanged += (s, e) => PositionTogglePasswordButton();
+            tbPassword.LocationChanged += (s, e) => PositionTogglePasswordButton();
+            AccountPanel.Resize += (s, e) => PositionTogglePasswordButton();
 
             //EventTableData.AutoGenerateColumns = false;
             //EventTableData.Columns.Clear();
@@ -257,14 +278,14 @@ namespace POLLINGSYSTEM
         {
             if (tbPassword.PasswordChar == '•')
             {
-                tbPassword.PasswordChar = '\0';
+                tbPassword.PasswordChar = '\0'; // show
             }
             else
             {
-                tbPassword.PasswordChar = '•';
+                tbPassword.PasswordChar = '•';  // hide
             }
         }
-
+            
         private void LoadVotersData(String searchKey = "")
         {
             SqlDataAdapter da;
@@ -329,216 +350,6 @@ namespace POLLINGSYSTEM
                 da.Fill(dt);
 
                 EventTableData.DataSource = dt;
-
-                // Optional: set friendly column headers without breaking column names used in code.
-                if (EventTableData.Columns.Contains("EventID"))
-                    EventTableData.Columns["EventID"].HeaderText = "Event ID";
-                if (EventTableData.Columns.Contains("EventName"))
-                    EventTableData.Columns["EventName"].HeaderText = "Name";
-                if (EventTableData.Columns.Contains("TeamGroup"))
-                    EventTableData.Columns["TeamGroup"].HeaderText = "Team";
-                if (EventTableData.Columns.Contains("TimeStart"))
-                    EventTableData.Columns["TimeStart"].HeaderText = "Start";
-                if (EventTableData.Columns.Contains("TimeEnd"))
-                    EventTableData.Columns["TimeEnd"].HeaderText = "End";
-                if (EventTableData.Columns.Contains("description"))
-                    EventTableData.Columns["description"].HeaderText = "Description";
-
-                // Optional: set friendly column headers without breaking column names used in code.
-                if (EventTableData.Columns.Contains("EventID"))
-                    EventTableData.Columns["EventID"].HeaderText = "Event ID";
-                if (EventTableData.Columns.Contains("EventName"))
-                    EventTableData.Columns["EventName"].HeaderText = "Name";
-                if (EventTableData.Columns.Contains("TeamGroup"))
-                    EventTableData.Columns["TeamGroup"].HeaderText = "Team";
-                if (EventTableData.Columns.Contains("TimeStart"))
-                    EventTableData.Columns["TimeStart"].HeaderText = "Start";
-                if (EventTableData.Columns.Contains("TimeEnd"))
-                    EventTableData.Columns["TimeEnd"].HeaderText = "End";
-                if (EventTableData.Columns.Contains("description"))
-                    EventTableData.Columns["description"].HeaderText = "Description";
-
-                // Optional: set friendly column headers without breaking column names used in code.
-                if (EventTableData.Columns.Contains("EventID"))
-                    EventTableData.Columns["EventID"].HeaderText = "Event ID";
-                if (EventTableData.Columns.Contains("EventName"))
-                    EventTableData.Columns["EventName"].HeaderText = "Name";
-                if (EventTableData.Columns.Contains("TeamGroup"))
-                    EventTableData.Columns["TeamGroup"].HeaderText = "Team";
-                if (EventTableData.Columns.Contains("TimeStart"))
-                    EventTableData.Columns["TimeStart"].HeaderText = "Start";
-                if (EventTableData.Columns.Contains("TimeEnd"))
-                    EventTableData.Columns["TimeEnd"].HeaderText = "End";
-                if (EventTableData.Columns.Contains("description"))
-                    EventTableData.Columns["description"].HeaderText = "Description";
-
-                // Optional: set friendly column headers without breaking column names used in code.
-                if (EventTableData.Columns.Contains("EventID"))
-                    EventTableData.Columns["EventID"].HeaderText = "Event ID";
-                if (EventTableData.Columns.Contains("EventName"))
-                    EventTableData.Columns["EventName"].HeaderText = "Name";
-                if (EventTableData.Columns.Contains("TeamGroup"))
-                    EventTableData.Columns["TeamGroup"].HeaderText = "Team";
-                if (EventTableData.Columns.Contains("TimeStart"))
-                    EventTableData.Columns["TimeStart"].HeaderText = "Start";
-                if (EventTableData.Columns.Contains("TimeEnd"))
-                    EventTableData.Columns["TimeEnd"].HeaderText = "End";
-                if (EventTableData.Columns.Contains("description"))
-                    EventTableData.Columns["description"].HeaderText = "Description";
-
-                // Optional: set friendly column headers without breaking column names used in code.
-                if (EventTableData.Columns.Contains("EventID"))
-                    EventTableData.Columns["EventID"].HeaderText = "Event ID";
-                if (EventTableData.Columns.Contains("EventName"))
-                    EventTableData.Columns["EventName"].HeaderText = "Name";
-                if (EventTableData.Columns.Contains("TeamGroup"))
-                    EventTableData.Columns["TeamGroup"].HeaderText = "Team";
-                if (EventTableData.Columns.Contains("TimeStart"))
-                    EventTableData.Columns["TimeStart"].HeaderText = "Start";
-                if (EventTableData.Columns.Contains("TimeEnd"))
-                    EventTableData.Columns["TimeEnd"].HeaderText = "End";
-                if (EventTableData.Columns.Contains("description"))
-                    EventTableData.Columns["description"].HeaderText = "Description";
-
-                // Optional: set friendly column headers without breaking column names used in code.
-                if (EventTableData.Columns.Contains("EventID"))
-                    EventTableData.Columns["EventID"].HeaderText = "Event ID";
-                if (EventTableData.Columns.Contains("EventName"))
-                    EventTableData.Columns["EventName"].HeaderText = "Name";
-                if (EventTableData.Columns.Contains("TeamGroup"))
-                    EventTableData.Columns["TeamGroup"].HeaderText = "Team";
-                if (EventTableData.Columns.Contains("TimeStart"))
-                    EventTableData.Columns["TimeStart"].HeaderText = "Start";
-                if (EventTableData.Columns.Contains("TimeEnd"))
-                    EventTableData.Columns["TimeEnd"].HeaderText = "End";
-                if (EventTableData.Columns.Contains("description"))
-                    EventTableData.Columns["description"].HeaderText = "Description";
-
-                // Optional: set friendly column headers without breaking column names used in code.
-                if (EventTableData.Columns.Contains("EventID"))
-                    EventTableData.Columns["EventID"].HeaderText = "Event ID";
-                if (EventTableData.Columns.Contains("EventName"))
-                    EventTableData.Columns["EventName"].HeaderText = "Name";
-                if (EventTableData.Columns.Contains("TeamGroup"))
-                    EventTableData.Columns["TeamGroup"].HeaderText = "Team";
-                if (EventTableData.Columns.Contains("TimeStart"))
-                    EventTableData.Columns["TimeStart"].HeaderText = "Start";
-                if (EventTableData.Columns.Contains("TimeEnd"))
-                    EventTableData.Columns["TimeEnd"].HeaderText = "End";
-                if (EventTableData.Columns.Contains("description"))
-                    EventTableData.Columns["description"].HeaderText = "Description";
-
-                // Optional: set friendly column headers without breaking column names used in code.
-                if (EventTableData.Columns.Contains("EventID"))
-                    EventTableData.Columns["EventID"].HeaderText = "Event ID";
-                if (EventTableData.Columns.Contains("EventName"))
-                    EventTableData.Columns["EventName"].HeaderText = "Name";
-                if (EventTableData.Columns.Contains("TeamGroup"))
-                    EventTableData.Columns["TeamGroup"].HeaderText = "Team";
-                if (EventTableData.Columns.Contains("TimeStart"))
-                    EventTableData.Columns["TimeStart"].HeaderText = "Start";
-                if (EventTableData.Columns.Contains("TimeEnd"))
-                    EventTableData.Columns["TimeEnd"].HeaderText = "End";
-                if (EventTableData.Columns.Contains("description"))
-                    EventTableData.Columns["description"].HeaderText = "Description";
-
-                // Optional: set friendly column headers without breaking column names used in code.
-                if (EventTableData.Columns.Contains("EventID"))
-                    EventTableData.Columns["EventID"].HeaderText = "Event ID";
-                if (EventTableData.Columns.Contains("EventName"))
-                    EventTableData.Columns["EventName"].HeaderText = "Name";
-                if (EventTableData.Columns.Contains("TeamGroup"))
-                    EventTableData.Columns["TeamGroup"].HeaderText = "Team";
-                if (EventTableData.Columns.Contains("TimeStart"))
-                    EventTableData.Columns["TimeStart"].HeaderText = "Start";
-                if (EventTableData.Columns.Contains("TimeEnd"))
-                    EventTableData.Columns["TimeEnd"].HeaderText = "End";
-                if (EventTableData.Columns.Contains("description"))
-                    EventTableData.Columns["description"].HeaderText = "Description";
-
-                // Optional: set friendly column headers without breaking column names used in code.
-                if (EventTableData.Columns.Contains("EventID"))
-                    EventTableData.Columns["EventID"].HeaderText = "Event ID";
-                if (EventTableData.Columns.Contains("EventName"))
-                    EventTableData.Columns["EventName"].HeaderText = "Name";
-                if (EventTableData.Columns.Contains("TeamGroup"))
-                    EventTableData.Columns["TeamGroup"].HeaderText = "Team";
-                if (EventTableData.Columns.Contains("TimeStart"))
-                    EventTableData.Columns["TimeStart"].HeaderText = "Start";
-                if (EventTableData.Columns.Contains("TimeEnd"))
-                    EventTableData.Columns["TimeEnd"].HeaderText = "End";
-                if (EventTableData.Columns.Contains("description"))
-                    EventTableData.Columns["description"].HeaderText = "Description";
-
-                // Optional: set friendly column headers without breaking column names used in code.
-                if (EventTableData.Columns.Contains("EventID"))
-                    EventTableData.Columns["EventID"].HeaderText = "Event ID";
-                if (EventTableData.Columns.Contains("EventName"))
-                    EventTableData.Columns["EventName"].HeaderText = "Name";
-                if (EventTableData.Columns.Contains("TeamGroup"))
-                    EventTableData.Columns["TeamGroup"].HeaderText = "Team";
-                if (EventTableData.Columns.Contains("TimeStart"))
-                    EventTableData.Columns["TimeStart"].HeaderText = "Start";
-                if (EventTableData.Columns.Contains("TimeEnd"))
-                    EventTableData.Columns["TimeEnd"].HeaderText = "End";
-                if (EventTableData.Columns.Contains("description"))
-                    EventTableData.Columns["description"].HeaderText = "Description";
-
-                // Optional: set friendly column headers without breaking column names used in code.
-                if (EventTableData.Columns.Contains("EventID"))
-                    EventTableData.Columns["EventID"].HeaderText = "Event ID";
-                if (EventTableData.Columns.Contains("EventName"))
-                    EventTableData.Columns["EventName"].HeaderText = "Name";
-                if (EventTableData.Columns.Contains("TeamGroup"))
-                    EventTableData.Columns["TeamGroup"].HeaderText = "Team";
-                if (EventTableData.Columns.Contains("TimeStart"))
-                    EventTableData.Columns["TimeStart"].HeaderText = "Start";
-                if (EventTableData.Columns.Contains("TimeEnd"))
-                    EventTableData.Columns["TimeEnd"].HeaderText = "End";
-                if (EventTableData.Columns.Contains("description"))
-                    EventTableData.Columns["description"].HeaderText = "Description";
-
-                // Optional: set friendly column headers without breaking column names used in code.
-                if (EventTableData.Columns.Contains("EventID"))
-                    EventTableData.Columns["EventID"].HeaderText = "Event ID";
-                if (EventTableData.Columns.Contains("EventName"))
-                    EventTableData.Columns["EventName"].HeaderText = "Name";
-                if (EventTableData.Columns.Contains("TeamGroup"))
-                    EventTableData.Columns["TeamGroup"].HeaderText = "Team";
-                if (EventTableData.Columns.Contains("TimeStart"))
-                    EventTableData.Columns["TimeStart"].HeaderText = "Start";
-                if (EventTableData.Columns.Contains("TimeEnd"))
-                    EventTableData.Columns["TimeEnd"].HeaderText = "End";
-                if (EventTableData.Columns.Contains("description"))
-                    EventTableData.Columns["description"].HeaderText = "Description";
-
-                // Optional: set friendly column headers without breaking column names used in code.
-                if (EventTableData.Columns.Contains("EventID"))
-                    EventTableData.Columns["EventID"].HeaderText = "Event ID";
-                if (EventTableData.Columns.Contains("EventName"))
-                    EventTableData.Columns["EventName"].HeaderText = "Name";
-                if (EventTableData.Columns.Contains("TeamGroup"))
-                    EventTableData.Columns["TeamGroup"].HeaderText = "Team";
-                if (EventTableData.Columns.Contains("TimeStart"))
-                    EventTableData.Columns["TimeStart"].HeaderText = "Start";
-                if (EventTableData.Columns.Contains("TimeEnd"))
-                    EventTableData.Columns["TimeEnd"].HeaderText = "End";
-                if (EventTableData.Columns.Contains("description"))
-                    EventTableData.Columns["description"].HeaderText = "Description";
-
-                // Optional: set friendly column headers without breaking column names used in code.
-                if (EventTableData.Columns.Contains("EventID"))
-                    EventTableData.Columns["EventID"].HeaderText = "Event ID";
-                if (EventTableData.Columns.Contains("EventName"))
-                    EventTableData.Columns["EventName"].HeaderText = "Name";
-                if (EventTableData.Columns.Contains("TeamGroup"))
-                    EventTableData.Columns["TeamGroup"].HeaderText = "Team";
-                if (EventTableData.Columns.Contains("TimeStart"))
-                    EventTableData.Columns["TimeStart"].HeaderText = "Start";
-                if (EventTableData.Columns.Contains("TimeEnd"))
-                    EventTableData.Columns["TimeEnd"].HeaderText = "End";
-                if (EventTableData.Columns.Contains("description"))
-                    EventTableData.Columns["description"].HeaderText = "Description";
 
                 // Optional: set friendly column headers without breaking column names used in code.
                 if (EventTableData.Columns.Contains("EventID"))
@@ -1813,5 +1624,85 @@ SELECT [LogId]
 
             EventHistoryData.Columns.AddRange(new DataGridViewColumn[] { colId, colAction, colDetails, colOccurred });
         }
+
+    private void votersData_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0) return;
+            var row = votersData.Rows[e.RowIndex];
+            FillAccountFieldsFromRow(row);
+        }
+
+        private void votersData_SelectionChanged(object sender, EventArgs e)
+        {
+            if (votersData.CurrentRow != null && votersData.CurrentRow.Index >= 0)
+            {
+                FillAccountFieldsFromRow(votersData.CurrentRow);
+            }
+        }
+
+        private void FillAccountFieldsFromRow(DataGridViewRow row)
+        {
+            tbStudentNumberAcc.Text = Convert.ToString(row.Cells["StudentNo"].Value);
+            tbLastNameAcc.Text      = Convert.ToString(row.Cells["LastName"].Value);
+            tbFirstNameAcc.Text     = Convert.ToString(row.Cells["FirstName"].Value);
+
+            var middle = row.Cells["MiddleName"].Value;
+            tbMiddleNameAcc.Text = middle == null || middle == DBNull.Value ? string.Empty : Convert.ToString(middle);
+
+            var role = Convert.ToString(row.Cells["Role"].Value);
+            int roleIndex = cbRoleAcc.Items.IndexOf(role);
+            cbRoleAcc.SelectedIndex = roleIndex;
+            if (roleIndex == -1) cbRoleAcc.Text = role;
+
+            var program = row.Cells["Program"].Value == null || row.Cells["Program"].Value == DBNull.Value
+                ? string.Empty
+                : Convert.ToString(row.Cells["Program"].Value);
+            int progIndex = string.IsNullOrWhiteSpace(program) ? -1 : cbProgramAcc.Items.IndexOf(program);
+            cbProgramAcc.SelectedIndex = progIndex;
+            if (progIndex == -1) cbProgramAcc.Text = program;
+
+            // Load password from DB for selected StudentNo
+            var pwd = GetPasswordForStudent(tbStudentNumberAcc.Text?.Trim());
+            tbPassword.Text = pwd ?? string.Empty;
+            //tbPassword.PasswordChar = '•';
+
+            currentAccountStudID = tbStudentNumberAcc.Text?.Trim();
+            UpdateProgramVisibility();
+        }
+
+        private string GetPasswordForStudent(string studentNo)
+{
+    if (string.IsNullOrWhiteSpace(studentNo)) return string.Empty;
+
+    try
+    {
+        using (var con = new SqlConnection(ConnectionString))
+        using (var cmd = new SqlCommand("SELECT [Password] FROM [dbo].[Voters] WHERE StudentNo = @StudentNo", con))
+        {
+            cmd.Parameters.AddWithValue("@StudentNo", studentNo);
+            con.Open();
+            var result = cmd.ExecuteScalar();
+            return result == null || result == DBNull.Value ? string.Empty : Convert.ToString(result);
+        }
+    }
+    catch
+    {
+        // Avoid breaking UI if lookup fails
+        return string.Empty;
+    }   
+}
+
+private void PositionTogglePasswordButton()
+{
+    if (btnTogglePassword == null || tbPassword == null) return;
+
+    // Place the button inside the right edge of tbPassword with small padding
+    var paddingRight = 6;
+    var x = tbPassword.Right - btnTogglePassword.Width - paddingRight;
+    var y = tbPassword.Top + (tbPassword.Height - btnTogglePassword.Height) / 2;
+
+    btnTogglePassword.Location = new Point(x, y);
+    btnTogglePassword.BringToFront();
+}
     }
 }
