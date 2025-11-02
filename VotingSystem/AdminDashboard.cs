@@ -41,53 +41,53 @@ namespace POLLINGSYSTEM
         public AdminDashboard()
         {
             InitializeComponent();
-            UpdateTotalEventLabel();
 
+            UpdateTotalEventLabel();
             this.cbRoleAcc.SelectedIndexChanged += new System.EventHandler(this.cbRoleAcc_SelectedIndexChanged);
             UpdateProgramVisibility();
 
 
-            EventTableData.AutoGenerateColumns = false;
-            EventTableData.Columns.Clear();
+            //EventTableData.AutoGenerateColumns = false;
+            //EventTableData.Columns.Clear();
 
-            if (!EventTableData.Columns.Contains("EventID"))
-            {
-                EventTableData.Columns.Add("EventID", "Event ID");
-                EventTableData.Columns["EventID"].DataPropertyName = "EventID";
-                EventTableData.Columns["EventID"].Visible = false;
-            }
+            //if (!EventTableData.Columns.Contains("EventID"))
+            //{
+            //    EventTableData.Columns.Add("EventID", "Event ID");
+            //    EventTableData.Columns["EventID"].DataPropertyName = "EventID";
+            //    EventTableData.Columns["EventID"].Visible = false;
+            //}
 
-            if (!EventTableData.Columns.Contains("EventName"))
-            {
-                EventTableData.Columns.Add("EventName", "Event Name");
-                EventTableData.Columns["EventName"].DataPropertyName = "EventName";
-            }
+            //if (!EventTableData.Columns.Contains("EventName"))
+            //{
+            //    EventTableData.Columns.Add("EventName", "Event Name");
+            //    EventTableData.Columns["EventName"].DataPropertyName = "EventName";
+            //}
 
-            if (!EventTableData.Columns.Contains("description"))
-            {
-                EventTableData.Columns.Add("description", "Description");
-                EventTableData.Columns["description"].DataPropertyName = "description";
-            }
+            //if (!EventTableData.Columns.Contains("description"))
+            //{
+            //    EventTableData.Columns.Add("description", "Description");
+            //    EventTableData.Columns["description"].DataPropertyName = "description";
+            //}
 
-            if (!EventTableData.Columns.Contains("TeamGroup"))
-            {
-                EventTableData.Columns.Add("TeamGroup", "Group");
-                EventTableData.Columns["TeamGroup"].DataPropertyName = "TeamGroup";
-            }
+            //if (!EventTableData.Columns.Contains("TeamGroup"))
+            //{
+            //    EventTableData.Columns.Add("TeamGroup", "Group");
+            //    EventTableData.Columns["TeamGroup"].DataPropertyName = "TeamGroup";
+            //}
 
-            if (!EventTableData.Columns.Contains("TimeStart"))
-            {
-                EventTableData.Columns.Add("TimeStart", "Time Start");
-                EventTableData.Columns["TimeStart"].DataPropertyName = "TimeStart";
-                EventTableData.Columns["TimeStart"].DefaultCellStyle.Format = "MM/dd/yy hh:mm tt";
-            }
+            //if (!EventTableData.Columns.Contains("TimeStart"))
+            //{
+            //    EventTableData.Columns.Add("TimeStart", "Time Start");
+            //    EventTableData.Columns["TimeStart"].DataPropertyName = "TimeStart";
+            //    EventTableData.Columns["TimeStart"].DefaultCellStyle.Format = "MM/dd/yy hh:mm tt";
+            //}
 
-            if (!EventTableData.Columns.Contains("TimeEnd"))
-            {
-                EventTableData.Columns.Add("TimeEnd", "Time End");
-                EventTableData.Columns["TimeEnd"].DataPropertyName = "TimeEnd";
-                EventTableData.Columns["TimeEnd"].DefaultCellStyle.Format = "MM/dd/yy hh:mm tt";
-            }
+            //if (!EventTableData.Columns.Contains("TimeEnd"))
+            //{
+            //    EventTableData.Columns.Add("TimeEnd", "Time End");
+            //    EventTableData.Columns["TimeEnd"].DataPropertyName = "TimeEnd";
+            //    EventTableData.Columns["TimeEnd"].DefaultCellStyle.Format = "MM/dd/yy hh:mm tt";
+            //}
 
             foreach (string program in programs)
             {
@@ -307,17 +307,108 @@ namespace POLLINGSYSTEM
             {
                 if (searchKey == "")
                 {
-                    da = new SqlDataAdapter("SELECT EventID, EventName, TeamGroup, TimeStart, TimeEnd, description FROM EventTb", con);
+                    // Use real column names so the rest of the code can rely on them.
+                    da = new SqlDataAdapter(
+                        "SELECT EventID, EventName, TeamGroup, TimeStart, TimeEnd, description FROM EventTb",
+                        con);
                 }
                 else
                 {
-                    da = new SqlDataAdapter("SELECT EventID, EventName, TeamGroup, TimeStart, TimeEnd, description FROM EventTb where EventName like '%" + searchKey + "%'", con);
+                    da = new SqlDataAdapter(
+                        "SELECT EventID, EventName, TeamGroup, TimeStart, TimeEnd, description " +
+                        "FROM EventTb " +
+                        "WHERE EventName LIKE '%" + searchKey + "%' OR EventID LIKE '%" + searchKey + "%'",
+                        con);
                 }
 
                 DataTable dt = new DataTable();
                 da.Fill(dt);
 
                 EventTableData.DataSource = dt;
+
+                // Optional: set friendly column headers without breaking column names used in code.
+                if (EventTableData.Columns.Contains("EventID"))
+                    EventTableData.Columns["EventID"].HeaderText = "Event ID";
+                if (EventTableData.Columns.Contains("EventName"))
+                    EventTableData.Columns["EventName"].HeaderText = "Name";
+                if (EventTableData.Columns.Contains("TeamGroup"))
+                    EventTableData.Columns["TeamGroup"].HeaderText = "Team";
+                if (EventTableData.Columns.Contains("TimeStart"))
+                    EventTableData.Columns["TimeStart"].HeaderText = "Start";
+                if (EventTableData.Columns.Contains("TimeEnd"))
+                    EventTableData.Columns["TimeEnd"].HeaderText = "End";
+                if (EventTableData.Columns.Contains("description"))
+                    EventTableData.Columns["description"].HeaderText = "Description";
+
+                // Optional: set friendly column headers without breaking column names used in code.
+                if (EventTableData.Columns.Contains("EventID"))
+                    EventTableData.Columns["EventID"].HeaderText = "Event ID";
+                if (EventTableData.Columns.Contains("EventName"))
+                    EventTableData.Columns["EventName"].HeaderText = "Name";
+                if (EventTableData.Columns.Contains("TeamGroup"))
+                    EventTableData.Columns["TeamGroup"].HeaderText = "Team";
+                if (EventTableData.Columns.Contains("TimeStart"))
+                    EventTableData.Columns["TimeStart"].HeaderText = "Start";
+                if (EventTableData.Columns.Contains("TimeEnd"))
+                    EventTableData.Columns["TimeEnd"].HeaderText = "End";
+                if (EventTableData.Columns.Contains("description"))
+                    EventTableData.Columns["description"].HeaderText = "Description";
+
+                // Optional: set friendly column headers without breaking column names used in code.
+                if (EventTableData.Columns.Contains("EventID"))
+                    EventTableData.Columns["EventID"].HeaderText = "Event ID";
+                if (EventTableData.Columns.Contains("EventName"))
+                    EventTableData.Columns["EventName"].HeaderText = "Name";
+                if (EventTableData.Columns.Contains("TeamGroup"))
+                    EventTableData.Columns["TeamGroup"].HeaderText = "Team";
+                if (EventTableData.Columns.Contains("TimeStart"))
+                    EventTableData.Columns["TimeStart"].HeaderText = "Start";
+                if (EventTableData.Columns.Contains("TimeEnd"))
+                    EventTableData.Columns["TimeEnd"].HeaderText = "End";
+                if (EventTableData.Columns.Contains("description"))
+                    EventTableData.Columns["description"].HeaderText = "Description";
+
+                // Optional: set friendly column headers without breaking column names used in code.
+                if (EventTableData.Columns.Contains("EventID"))
+                    EventTableData.Columns["EventID"].HeaderText = "Event ID";
+                if (EventTableData.Columns.Contains("EventName"))
+                    EventTableData.Columns["EventName"].HeaderText = "Name";
+                if (EventTableData.Columns.Contains("TeamGroup"))
+                    EventTableData.Columns["TeamGroup"].HeaderText = "Team";
+                if (EventTableData.Columns.Contains("TimeStart"))
+                    EventTableData.Columns["TimeStart"].HeaderText = "Start";
+                if (EventTableData.Columns.Contains("TimeEnd"))
+                    EventTableData.Columns["TimeEnd"].HeaderText = "End";
+                if (EventTableData.Columns.Contains("description"))
+                    EventTableData.Columns["description"].HeaderText = "Description";
+
+                // Optional: set friendly column headers without breaking column names used in code.
+                if (EventTableData.Columns.Contains("EventID"))
+                    EventTableData.Columns["EventID"].HeaderText = "Event ID";
+                if (EventTableData.Columns.Contains("EventName"))
+                    EventTableData.Columns["EventName"].HeaderText = "Name";
+                if (EventTableData.Columns.Contains("TeamGroup"))
+                    EventTableData.Columns["TeamGroup"].HeaderText = "Team";
+                if (EventTableData.Columns.Contains("TimeStart"))
+                    EventTableData.Columns["TimeStart"].HeaderText = "Start";
+                if (EventTableData.Columns.Contains("TimeEnd"))
+                    EventTableData.Columns["TimeEnd"].HeaderText = "End";
+                if (EventTableData.Columns.Contains("description"))
+                    EventTableData.Columns["description"].HeaderText = "Description";
+
+                // Optional: set friendly column headers without breaking column names used in code.
+                if (EventTableData.Columns.Contains("EventID"))
+                    EventTableData.Columns["EventID"].HeaderText = "Event ID";
+                if (EventTableData.Columns.Contains("EventName"))
+                    EventTableData.Columns["EventName"].HeaderText = "Name";
+                if (EventTableData.Columns.Contains("TeamGroup"))
+                    EventTableData.Columns["TeamGroup"].HeaderText = "Team";
+                if (EventTableData.Columns.Contains("TimeStart"))
+                    EventTableData.Columns["TimeStart"].HeaderText = "Start";
+                if (EventTableData.Columns.Contains("TimeEnd"))
+                    EventTableData.Columns["TimeEnd"].HeaderText = "End";
+                if (EventTableData.Columns.Contains("description"))
+                    EventTableData.Columns["description"].HeaderText = "Description";
             }
         }
 
@@ -403,25 +494,37 @@ namespace POLLINGSYSTEM
                 {
                     con.Open();
 
-                    // Do NOT insert EventID (IDENTITY). Let SQL Server generate it.
-                    string sql = @"SET IDENTITY_INSERT EventTb ON;
-INSERT INTO EventTb (EventID, EventName, TeamGroup, TimeStart, TimeEnd, [description])
-VALUES (@EventID, @EventName, @TeamGroup, @TimeStart, @TimeEnd, @description);";
-
-                    using (SqlCommand cmd = new SqlCommand(sql, con))
+                    // 1) Prevent duplicates of (EventName, TeamGroup)
+                    using (var dup = new SqlCommand(
+                        @"SELECT COUNT(1) 
+                          FROM dbo.EventTb 
+                          WHERE EventName = @EventName AND TeamGroup = @TeamGroup;", con))
                     {
-                        cmd.Parameters.AddWithValue("@EventID", tbEventID.Text.Trim());
+                        dup.Parameters.AddWithValue("@EventName", tbEventName.Text.Trim());
+                        dup.Parameters.AddWithValue("@TeamGroup", tbTeam.Text.Trim());
+
+                        var exists = (int)dup.ExecuteScalar() > 0;
+                        if (exists)
+                        {
+                            MessageBox.Show("This Event Name and Group already exist. Please choose a different group name.");
+                            return;
+                        }
+                    }
+
+                    // 2) Insert without EventID (IDENTITY generates it)
+                    using (var cmd = new SqlCommand(
+                        @"INSERT INTO dbo.EventTb (EventName, TeamGroup, TimeStart, TimeEnd, [description])
+                          VALUES (@EventName, @TeamGroup, @TimeStart, @TimeEnd, @description);
+                          SELECT CAST(SCOPE_IDENTITY() AS int);", con))
+                    {
                         cmd.Parameters.AddWithValue("@EventName", tbEventName.Text.Trim());
                         cmd.Parameters.AddWithValue("@TeamGroup", tbTeam.Text.Trim());
                         cmd.Parameters.AddWithValue("@TimeStart", dtpTimeStart.Value);
                         cmd.Parameters.AddWithValue("@TimeEnd", dtpTimeEnd.Value);
                         cmd.Parameters.AddWithValue("@description", tbDesc.Text.Trim());
 
-                        var newId = cmd.ExecuteScalar();
-                        if (newId != null)
-                        {
-                            tbEventID.Text = newId.ToString(); // optional: show the new identity
-                        }
+                        var newId = (int)cmd.ExecuteScalar();
+                        tbEventID.Text = newId.ToString();
                     }
                 }
 
@@ -429,6 +532,11 @@ VALUES (@EventID, @EventName, @TeamGroup, @TimeStart, @TimeEnd, @description);";
                 LoadEventsData();
                 UpdateTotalEventLabel();
                 UpdateEventDropdown();
+            }
+            catch (SqlException ex) when (ex.Number == 2601 || ex.Number == 2627)
+            {
+                // Unique key violation (duplicate EventName + TeamGroup)
+                MessageBox.Show("This Event Name and Group already exist. Please choose a different group name.");
             }
             catch (Exception ex)
             {
@@ -445,13 +553,11 @@ VALUES (@EventID, @EventName, @TeamGroup, @TimeStart, @TimeEnd, @description);";
                 MessageBox.Show("Please select an event to update, and ensure Event ID is loaded.");
                 return;
             }
-
             if (string.IsNullOrWhiteSpace(tbEventName.Text) || string.IsNullOrWhiteSpace(tbTeam.Text))
             {
                 MessageBox.Show("Please fill in Event Name and Group.");
                 return;
             }
-
             if (!int.TryParse(tbEventID.Text, out int eventIdToUpdate))
             {
                 MessageBox.Show("Invalid Event ID format.");
@@ -464,31 +570,50 @@ VALUES (@EventID, @EventName, @TeamGroup, @TimeStart, @TimeEnd, @description);";
                 {
                     con.Open();
 
-                    SqlCommand cmd = new SqlCommand(
-                    "UPDATE EventTb SET description=@description, EventName=@NewEventName, TeamGroup=@TeamGroup, TimeStart=@TimeStart, TimeEnd=@TimeEnd WHERE EventID=@EventID", con);
-
-                    cmd.Parameters.AddWithValue("@EventID", eventIdToUpdate);
-                    cmd.Parameters.AddWithValue("@NewEventName", tbEventName.Text.Trim());
-                    cmd.Parameters.AddWithValue("@TeamGroup", tbTeam.Text.Trim());
-                    cmd.Parameters.AddWithValue("@TimeStart", dtpTimeStart.Value);
-                    cmd.Parameters.AddWithValue("@TimeEnd", dtpTimeEnd.Value);
-                    cmd.Parameters.AddWithValue("@description", tbDesc.Text.Trim());
-
-                    int rowsAffected = cmd.ExecuteNonQuery();
-
-                    if (rowsAffected > 0)
+                    // Prevent duplicates on update (ignore current row)
+                    using (var dup = new SqlCommand(
+                        @"SELECT COUNT(1) 
+                          FROM dbo.EventTb 
+                          WHERE EventID <> @EventID AND EventName = @EventName AND TeamGroup = @TeamGroup;", con))
                     {
-                        MessageBox.Show("Event updated successfully in the database.");
+                        dup.Parameters.AddWithValue("@EventID", eventIdToUpdate);
+                        dup.Parameters.AddWithValue("@EventName", tbEventName.Text.Trim());
+                        dup.Parameters.AddWithValue("@TeamGroup", tbTeam.Text.Trim());
+
+                        var exists = (int)dup.ExecuteScalar() > 0;
+                        if (exists)
+                        {
+                            MessageBox.Show("Another event already uses this Event Name and Group.");
+                            return;
+                        }
                     }
-                    else
+
+                    using (SqlCommand cmd = new SqlCommand(
+                        @"UPDATE dbo.EventTb 
+                          SET [description]=@description, EventName=@NewEventName, TeamGroup=@TeamGroup, 
+                              TimeStart=@TimeStart, TimeEnd=@TimeEnd 
+                          WHERE EventID=@EventID", con))
                     {
-                        MessageBox.Show("No event found with the selected ID to update.");
+                        cmd.Parameters.AddWithValue("@EventID", eventIdToUpdate);
+                        cmd.Parameters.AddWithValue("@NewEventName", tbEventName.Text.Trim());
+                        cmd.Parameters.AddWithValue("@TeamGroup", tbTeam.Text.Trim());
+                        cmd.Parameters.AddWithValue("@TimeStart", dtpTimeStart.Value);
+                        cmd.Parameters.AddWithValue("@TimeEnd", dtpTimeEnd.Value);
+                        cmd.Parameters.AddWithValue("@description", tbDesc.Text.Trim());
+
+                        int rowsAffected = cmd.ExecuteNonQuery();
+                        MessageBox.Show(rowsAffected > 0 ? "Event updated successfully in the database."
+                                                 : "No event found with the selected ID to update.");
                     }
 
                     LoadEventsData();
                     UpdateTotalEventLabel();
                     UpdateEventDropdown();
                 }
+            }
+            catch (SqlException ex) when (ex.Number == 2601 || ex.Number == 2627)
+            {
+                MessageBox.Show("Another event already uses this Event Name and Group.");
             }
             catch (Exception ex)
             {
@@ -552,7 +677,7 @@ VALUES (@EventID, @EventName, @TeamGroup, @TimeStart, @TimeEnd, @description);";
                 if (EventTableData.Columns.Contains("EventID") && row.Cells["EventID"].Value != null && row.Cells["EventID"].Value != DBNull.Value)
                     tbEventID.Text = row.Cells["EventID"].Value.ToString();
                 else
-                    tbEventID.Clear();
+                    tbEventID.Text = "No data";
 
                 if (EventTableData.Columns.Contains("EventName") && row.Cells["EventName"].Value != null && row.Cells["EventName"].Value != DBNull.Value)
                     tbEventName.Text = row.Cells["EventName"].Value.ToString();
@@ -636,7 +761,7 @@ VALUES (@EventID, @EventName, @TeamGroup, @TimeStart, @TimeEnd, @description);";
 
             cbTeam.Items.Clear();
 
-            tbEventID.Clear();
+            tbEventID.Text = "No data";
 
             tbEventName.Clear();
             tbTeam.Clear();
