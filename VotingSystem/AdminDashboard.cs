@@ -197,7 +197,7 @@ namespace POLLINGSYSTEM
                 using (SqlConnection conn = new SqlConnection(ConnectionString))
                 {
                     conn.Open();
-                    string sql = "SELECT COUNT(*) FROM Voters Where isActive = 1";
+                    string sql = "SELECT COUNT(*) FROM Voters WHERE IsActive = 1 AND Role = 'Student'";
 
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
                     {
@@ -206,7 +206,7 @@ namespace POLLINGSYSTEM
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 lblVoters.Text = "0";
             }
@@ -269,9 +269,7 @@ namespace POLLINGSYSTEM
                 if (searchKey == "")
                 {
                     da = new SqlDataAdapter("SELECT StudentNo, Role, LastName, FirstName, MiddleName, Program FROM [dbo].[Voters]", con);
-                }
-                else
-                {
+                } else {
                     da = new SqlDataAdapter("SELECT StudentNo, Role, LastName, FirstName, MiddleName, Program FROM [dbo].[Voters] " +
                         "where StudentNo like '%" + searchKey + "%' or LastName like '%" + searchKey + "%'", con);
                 }
@@ -404,22 +402,33 @@ namespace POLLINGSYSTEM
                 using (SqlConnection con = new SqlConnection(ConnectionString))
                 {
                     con.Open();
-                    SqlCommand cmd = new SqlCommand(
-                    "INSERT INTO EventTb (EventName, TeamGroup, TimeStart, TimeEnd, description) VALUES (@EventName, @TeamGroup, @TimeStart, @TimeEnd, @description)", con);
 
-                    cmd.Parameters.AddWithValue("@EventName", tbEventName.Text.Trim());
-                    cmd.Parameters.AddWithValue("@TeamGroup", tbTeam.Text.Trim());
-                    cmd.Parameters.AddWithValue("@TimeStart", dtpTimeStart.Value);
-                    cmd.Parameters.AddWithValue("@TimeEnd", dtpTimeEnd.Value);
-                    cmd.Parameters.AddWithValue("@description", tbDesc.Text.Trim());
+                    // Do NOT insert EventID (IDENTITY). Let SQL Server generate it.
+                    string sql = @"SET IDENTITY_INSERT EventTb ON;
+INSERT INTO EventTb (EventID, EventName, TeamGroup, TimeStart, TimeEnd, [description])
+VALUES (@EventID, @EventName, @TeamGroup, @TimeStart, @TimeEnd, @description);";
 
-                    cmd.ExecuteNonQuery();
-                    MessageBox.Show("New Event created successfully and saved to database.");
+                    using (SqlCommand cmd = new SqlCommand(sql, con))
+                    {
+                        cmd.Parameters.AddWithValue("@EventID", tbEventID.Text.Trim());
+                        cmd.Parameters.AddWithValue("@EventName", tbEventName.Text.Trim());
+                        cmd.Parameters.AddWithValue("@TeamGroup", tbTeam.Text.Trim());
+                        cmd.Parameters.AddWithValue("@TimeStart", dtpTimeStart.Value);
+                        cmd.Parameters.AddWithValue("@TimeEnd", dtpTimeEnd.Value);
+                        cmd.Parameters.AddWithValue("@description", tbDesc.Text.Trim());
 
-                    LoadEventsData();
-                    UpdateTotalEventLabel();
-                    UpdateEventDropdown();
+                        var newId = cmd.ExecuteScalar();
+                        if (newId != null)
+                        {
+                            tbEventID.Text = newId.ToString(); // optional: show the new identity
+                        }
+                    }
                 }
+
+                MessageBox.Show("New Event created successfully and saved to database.");
+                LoadEventsData();
+                UpdateTotalEventLabel();
+                UpdateEventDropdown();
             }
             catch (Exception ex)
             {
@@ -549,7 +558,7 @@ namespace POLLINGSYSTEM
                     tbEventName.Text = row.Cells["EventName"].Value.ToString();
 
                 if (EventTableData.Columns.Contains("description") && row.Cells["description"].Value != null && row.Cells["description"].Value != DBNull.Value)
-                    tbEventName.Text = row.Cells["description"].Value.ToString();
+                    tbDesc.Text = row.Cells["description"].Value.ToString();
 
                 if (EventTableData.Columns.Contains("TeamGroup") && row.Cells["TeamGroup"].Value != null && row.Cells["TeamGroup"].Value != DBNull.Value)
                     tbTeam.Text = row.Cells["TeamGroup"].Value.ToString();
@@ -569,25 +578,50 @@ namespace POLLINGSYSTEM
             }
         }
 
-        private void LoadParticipantsData(String searchKey = "")
+        private void LoadParticipantsData(string searchKey = "", bool voterData = false)
         {
-            SqlDataAdapter da;
             using (SqlConnection con = new SqlConnection(ConnectionString))
             {
-                if (searchKey == "")
+                con.Open();
+
+                // Prefill form fields from Voters without touching the Participants grid
+                if (voterData && !string.IsNullOrWhiteSpace(searchKey))
                 {
-                    da = new SqlDataAdapter("SELECT StudentNo, LastName, FirstName, MiddleName, Program, Team, Event, position FROM Participants", con);
+                    using (var cmd = new SqlCommand(
+                        @"SELECT StudentNo, LastName, FirstName, MiddleName, Program
+                  FROM dbo.Voters
+                  WHERE StudentNo = @StudentNo", con))
+                    {
+                        cmd.Parameters.AddWithValue("@StudentNo", searchKey.Trim());
+
+                        using (var r = cmd.ExecuteReader())
+                        {
+                            if (r.Read())
+                            {
+                                tbStudentNum.Text = r["StudentNo"]?.ToString();
+                                tbLastName.Text = r["LastName"]?.ToString();
+                                tbFirstName.Text = r["FirstName"]?.ToString();
+                                tbMiddleName.Text = r["MiddleName"] == DBNull.Value ? string.Empty : r["MiddleName"].ToString();
+                                cbProgram.Text = r["Program"] == DBNull.Value ? string.Empty : r["Program"].ToString();
+                            }
+                        }
+                    }
+                    return; // Important: do not change TableParticipant binding
                 }
-                else
+
+                // Normal Participants listing/binding (parameterized search)
+                using (var cmd = new SqlCommand(
+                    @"SELECT StudentNo, LastName, FirstName, MiddleName, Program, Team, Event, position
+              FROM dbo.Participants
+              WHERE (@k = '' OR StudentNo LIKE '%' + @k + '%')", con))
                 {
-                    da = new SqlDataAdapter("SELECT StudentNo, LastName, FirstName, MiddleName, Program, Team, Event, position FROM Participants where StudentNo like '%" + searchKey + "%'", con);
+                    cmd.Parameters.AddWithValue("@k", searchKey ?? string.Empty);
+
+                    var da = new SqlDataAdapter(cmd);
+                    var dt = new DataTable();
+                    da.Fill(dt);
+                    TableParticipant.DataSource = dt;
                 }
-
-
-                DataTable dt = new DataTable();
-                da.Fill(dt);
-
-                TableParticipant.DataSource = dt;
             }
         }
 
@@ -1316,6 +1350,37 @@ namespace POLLINGSYSTEM
         private void guna2TextBox3_TextChanged(object sender, EventArgs e)
         {
             LoadVotersData(guna2TextBox3.Text);
+        }
+
+        private void guna2Button1_Click(object sender, EventArgs e)
+        {
+            // Add a temporary header above existing titles for printing
+            var header = new System.Windows.Forms.DataVisualization.Charting.Title
+            {
+                Text = "Polling Result",
+                Docking = System.Windows.Forms.DataVisualization.Charting.Docking.Top,
+                Alignment = ContentAlignment.TopCenter,
+                Font = new Font("Segoe UI", 16f, FontStyle.Bold),
+                ForeColor = Color.Black
+            };
+
+            chartEvent.Titles.Insert(0, header); // ensure it appears above other titles
+
+            try
+            {
+                chartEvent.Printing.PrintPreview();
+            }
+            finally
+            {
+                // Clean up so the extra header doesn’t remain on the live chart
+                chartEvent.Titles.Remove(header);
+                header.Dispose();
+            }
+        }
+
+        private void tbStudentNum_TextChanged(object sender, EventArgs e)
+        {
+            LoadParticipantsData(tbStudentNum.Text, true);
         }
     }
 }

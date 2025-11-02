@@ -12,10 +12,12 @@ namespace VotingSystem
     public partial class UserDashboard : Form
     {
         private const string ConnectionString = @"Data Source=DESKTOP-RVB0L7Q\SQLEXPRESS;Initial Catalog=POLLINGSYSTEM;Integrated Security=True;Encrypt=False";
-
         public int StudentID { get; set; }
-
         private System.Windows.Forms.DataGridView VotedhistoryData;
+
+        // ADD: fields inside class `UserDashboard`
+        private CancellationTokenSource _refreshCts;
+        private Task _refreshTask;
 
         public UserDashboard()
         {
@@ -34,6 +36,9 @@ namespace VotingSystem
 
             await Task.Delay(1000);
             LoadEventsIntoFlowPanel();
+
+            // start background refresh loop
+            StartRefreshLoop();
         }
 
 
@@ -57,7 +62,6 @@ namespace VotingSystem
         private void btnSignOut_Click(object sender, EventArgs e)
         {
             UpdateIsActiveStatus(0);
-
             VotingSystem loginForm = new VotingSystem();
             loginForm.Show();
             this.Close();
@@ -653,6 +657,78 @@ namespace VotingSystem
         {
             Program.StudentID = this.StudentID;
             Application.Exit();
+        }
+
+        // INSERT: new methods inside class `UserDashboard`
+        private void StartRefreshLoop()
+        {
+            StopRefreshLoop(); // ensure only one loop runs
+
+            _refreshCts = new CancellationTokenSource();
+            var token = _refreshCts.Token;
+
+            _refreshTask = Task.Run(async () =>
+            {
+                while (!token.IsCancellationRequested)
+                {
+                    try
+                    {
+                        await Task.Delay(TimeSpan.FromSeconds(10), token);
+                        if (token.IsCancellationRequested) break;
+
+                        if (IsDisposed || !IsHandleCreated) break;
+
+                        // update UI on UI thread
+                        BeginInvoke((Action)(() =>
+                        {
+                            try
+                            {
+                                LoadEventsIntoFlowPanel();
+                            }
+                            catch
+                            {
+                                // swallow or log; avoid crashing the loop on UI update errors
+                            }
+                        }));
+                    }
+                    catch (TaskCanceledException)
+                    {
+                        break;
+                    }
+                    catch
+                    {
+                        // swallow unexpected errors to keep loop alive
+                    }
+                }
+            }, token);
+        }
+
+        private void StopRefreshLoop()
+        {
+            try
+            {
+                if (_refreshCts != null && !_refreshCts.IsCancellationRequested)
+                {
+                    _refreshCts.Cancel();
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+            finally
+            {
+                _refreshCts?.Dispose();
+                _refreshCts = null;
+                _refreshTask = null;
+            }
+        }
+
+        // INSERT: ensure cleanup on form close inside class `UserDashboard`
+        protected override void OnFormClosed(FormClosedEventArgs e)
+        {
+            StopRefreshLoop();
+            base.OnFormClosed(e);
         }
     }
 }
