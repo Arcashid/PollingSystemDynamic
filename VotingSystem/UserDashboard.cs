@@ -30,7 +30,6 @@ namespace VotingSystem
             HomePanel.Visible = true;
             VotePanel.Visible = false;
             EventVoteProfile.Visible = false;
-            panelHistory.Visible = false;
 
             VotedhistoryData = new System.Windows.Forms.DataGridView();
 
@@ -47,16 +46,13 @@ namespace VotingSystem
             HomePanel.Visible = true;
             VotePanel.Visible = false;
             EventVoteProfile.Visible = false;
-            panelHistory.Visible = false;
         }
 
         private void btnHistory_Click(object sender, EventArgs e)
         {
-            panelHistory.Visible = true;
             HomePanel.Visible = false;
             VotePanel.Visible = false;
             EventVoteProfile.Visible = false;
-            LoadVoteHistory();
         }
 
         private void btnSignOut_Click(object sender, EventArgs e)
@@ -137,9 +133,11 @@ namespace VotingSystem
                     {
                         while (reader.Read())
                         {
-                            dtStart = DateTime.Parse(reader["TimeStart"].ToString());
-                            dtEnd = DateTime.Parse(reader["TimeEnd"].ToString());
-                            if (dtStart.Date == now.Date && (now.TimeOfDay >= dtStart.TimeOfDay && dtEnd.TimeOfDay >= now.TimeOfDay))
+                            dtStart = Convert.ToDateTime(reader["TimeStart"]);
+                            dtEnd = Convert.ToDateTime(reader["TimeEnd"]);
+
+                            // Show events that are currently active (start <= now <= end)
+                            if (now >= dtStart && now <= dtEnd)
                             {
                                 hasEvents = true;
                                 string name = reader["EventName"].ToString();
@@ -502,7 +500,6 @@ namespace VotingSystem
                                     MessageBox.Show($"Successfully voted for: {teamToVoteFor} in {currentEvent}!",
                                         "Vote Confirmed", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                                    LoadVoteHistory();
                                     LoadEventsIntoFlowPanel();
                                     HomePanel.Visible = true;
                                     VotePanel.Visible = false;
@@ -565,43 +562,43 @@ namespace VotingSystem
             }
         }
 
-        private void LoadVoteHistory()
-        {
-            DataTable dt = new DataTable();
+        //private void LoadVoteHistory()
+        //{
+        //    DataTable dt = new DataTable();
 
-            ConfigureHistoryDataGridView();
+        //    ConfigureHistoryDataGridView();
 
-            try
-            {
-                using (SqlConnection conn = new SqlConnection(ConnectionString))
-                {
-                    conn.Open();
-                    string sql = @"SELECT EventName as Event, TeamName as Team, VoteDate as Date
-                                     FROM History 
-                                     WHERE StudentNo = @StudentNo
-                                     ORDER BY VoteDate DESC";
+        //    try
+        //    {
+        //        using (SqlConnection conn = new SqlConnection(ConnectionString))
+        //        {
+        //            conn.Open();
+        //            string sql = @"SELECT EventName as Event, TeamName as Team, VoteDate as Date
+        //                             FROM History 
+        //                             WHERE StudentNo = @StudentNo
+        //                             ORDER BY VoteDate DESC";
 
-                    using (SqlCommand cmd = new SqlCommand(sql, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@StudentNo", StudentID);
+        //            using (SqlCommand cmd = new SqlCommand(sql, conn))
+        //            {
+        //                cmd.Parameters.AddWithValue("@StudentNo", StudentID);
 
-                        using (SqlDataAdapter da = new SqlDataAdapter(cmd))
-                        {
-                            da.Fill(dt);
-                            guna2DataGridView1.DataSource = dt;
-                        }
-                    }
-                }
-            }
-            catch (SqlException sqlex)
-            {
-                MessageBox.Show($"Error loading vote history: {sqlex.Message}", "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error loading vote history: {ex.Message}", "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
+        //                using (SqlDataAdapter da = new SqlDataAdapter(cmd))
+        //                {
+        //                    da.Fill(dt);
+        //                    guna2DataGridView1.DataSource = dt;
+        //                }
+        //            }
+        //        }
+        //    }
+        //    catch (SqlException sqlex)
+        //    {
+        //        MessageBox.Show($"Error loading vote history: {sqlex.Message}", "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        MessageBox.Show($"Error loading vote history: {ex.Message}", "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        //    }
+        //}
 
         private void ConfigureHistoryDataGridView()
         {

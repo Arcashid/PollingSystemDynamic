@@ -30,9 +30,6 @@
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(UserDashboard));
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle31 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle32 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle33 = new System.Windows.Forms.DataGridViewCellStyle();
             this.btnSignOut = new Guna.UI2.WinForms.Guna2GradientButton();
             this.label3 = new System.Windows.Forms.Label();
             this.HomePanel = new Guna.UI2.WinForms.Guna2GradientPanel();
@@ -57,12 +54,6 @@
             this.guna2GradientPanel9 = new Guna.UI2.WinForms.Guna2GradientPanel();
             this.guna2GradientPanel13 = new Guna.UI2.WinForms.Guna2GradientPanel();
             this.guna2GradientPanel14 = new Guna.UI2.WinForms.Guna2GradientPanel();
-            this.panelHistory = new Guna.UI2.WinForms.Guna2GradientPanel();
-            this.guna2DataGridView1 = new Guna.UI2.WinForms.Guna2DataGridView();
-            this.Event = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Participant = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Time = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Date = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.HomePanel.SuspendLayout();
             this.flowLayoutPanel1.SuspendLayout();
             this.VotedTeam.SuspendLayout();
@@ -70,8 +61,6 @@
             this.guna2GradientPanel7.SuspendLayout();
             this.VotePanel.SuspendLayout();
             this.flowLayoutPanel2.SuspendLayout();
-            this.panelHistory.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.guna2DataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
             // btnSignOut
@@ -126,12 +115,12 @@
             this.guna2HtmlLabel11.BackColor = System.Drawing.Color.Transparent;
             this.guna2HtmlLabel11.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.guna2HtmlLabel11.ForeColor = System.Drawing.Color.WhiteSmoke;
-            this.guna2HtmlLabel11.Location = new System.Drawing.Point(426, 470);
+            this.guna2HtmlLabel11.Location = new System.Drawing.Point(402, 470);
             this.guna2HtmlLabel11.Margin = new System.Windows.Forms.Padding(4);
             this.guna2HtmlLabel11.Name = "guna2HtmlLabel11";
-            this.guna2HtmlLabel11.Size = new System.Drawing.Size(188, 39);
+            this.guna2HtmlLabel11.Size = new System.Drawing.Size(222, 39);
             this.guna2HtmlLabel11.TabIndex = 6;
-            this.guna2HtmlLabel11.Text = "Team Voted";
+            this.guna2HtmlLabel11.Text = "TEAM VOTED";
             // 
             // guna2HtmlLabel1
             // 
@@ -231,9 +220,9 @@
             // 
             this.EventVoteProfile.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(126)))), ((int)(((byte)(230)))));
             this.EventVoteProfile.Controls.Add(this.guna2GradientPanel7);
-            this.EventVoteProfile.Location = new System.Drawing.Point(266, 0);
+            this.EventVoteProfile.Location = new System.Drawing.Point(1, 0);
             this.EventVoteProfile.Name = "EventVoteProfile";
-            this.EventVoteProfile.Size = new System.Drawing.Size(798, 778);
+            this.EventVoteProfile.Size = new System.Drawing.Size(1063, 778);
             this.EventVoteProfile.TabIndex = 13;
             // 
             // guna2GradientPanel7
@@ -241,7 +230,7 @@
             this.guna2GradientPanel7.BackColor = System.Drawing.Color.Black;
             this.guna2GradientPanel7.Controls.Add(this.guna2ImageButton1);
             this.guna2GradientPanel7.Controls.Add(this.btnVote);
-            this.guna2GradientPanel7.Location = new System.Drawing.Point(56, 74);
+            this.guna2GradientPanel7.Location = new System.Drawing.Point(162, 86);
             this.guna2GradientPanel7.Name = "guna2GradientPanel7";
             this.guna2GradientPanel7.Size = new System.Drawing.Size(681, 626);
             this.guna2GradientPanel7.TabIndex = 0;
@@ -254,7 +243,7 @@
             this.guna2ImageButton1.Image = ((System.Drawing.Image)(resources.GetObject("guna2ImageButton1.Image")));
             this.guna2ImageButton1.ImageOffset = new System.Drawing.Point(0, 0);
             this.guna2ImageButton1.ImageRotate = 0F;
-            this.guna2ImageButton1.Location = new System.Drawing.Point(119, 45);
+            this.guna2ImageButton1.Location = new System.Drawing.Point(112, 45);
             this.guna2ImageButton1.Name = "guna2ImageButton1";
             this.guna2ImageButton1.PressedState.ImageSize = new System.Drawing.Size(64, 64);
             this.guna2ImageButton1.Size = new System.Drawing.Size(453, 374);
@@ -271,7 +260,7 @@
             this.btnVote.FillColor2 = System.Drawing.Color.FromArgb(((int)(((byte)(21)))), ((int)(((byte)(113)))), ((int)(((byte)(212)))));
             this.btnVote.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnVote.ForeColor = System.Drawing.Color.White;
-            this.btnVote.Location = new System.Drawing.Point(270, 508);
+            this.btnVote.Location = new System.Drawing.Point(250, 487);
             this.btnVote.Name = "btnVote";
             this.btnVote.Size = new System.Drawing.Size(180, 45);
             this.btnVote.TabIndex = 0;
@@ -282,9 +271,9 @@
             this.VotePanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(126)))), ((int)(((byte)(230)))));
             this.VotePanel.Controls.Add(this.guna2HtmlLabel8);
             this.VotePanel.Controls.Add(this.flowLayoutPanel2);
-            this.VotePanel.Location = new System.Drawing.Point(265, 0);
+            this.VotePanel.Location = new System.Drawing.Point(-2, 0);
             this.VotePanel.Name = "VotePanel";
-            this.VotePanel.Size = new System.Drawing.Size(796, 774);
+            this.VotePanel.Size = new System.Drawing.Size(1063, 774);
             this.VotePanel.TabIndex = 14;
             // 
             // guna2HtmlLabel8
@@ -292,7 +281,7 @@
             this.guna2HtmlLabel8.BackColor = System.Drawing.Color.Transparent;
             this.guna2HtmlLabel8.Font = new System.Drawing.Font("Microsoft Sans Serif", 21.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.guna2HtmlLabel8.ForeColor = System.Drawing.Color.White;
-            this.guna2HtmlLabel8.Location = new System.Drawing.Point(310, 66);
+            this.guna2HtmlLabel8.Location = new System.Drawing.Point(443, 64);
             this.guna2HtmlLabel8.Name = "guna2HtmlLabel8";
             this.guna2HtmlLabel8.Size = new System.Drawing.Size(152, 35);
             this.guna2HtmlLabel8.TabIndex = 1;
@@ -306,7 +295,7 @@
             this.flowLayoutPanel2.Controls.Add(this.guna2GradientPanel14);
             this.flowLayoutPanel2.Location = new System.Drawing.Point(20, 139);
             this.flowLayoutPanel2.Name = "flowLayoutPanel2";
-            this.flowLayoutPanel2.Size = new System.Drawing.Size(748, 561);
+            this.flowLayoutPanel2.Size = new System.Drawing.Size(985, 561);
             this.flowLayoutPanel2.TabIndex = 0;
             this.flowLayoutPanel2.Click += new System.EventHandler(this.TeamBox_Click);
             // 
@@ -334,93 +323,6 @@
             this.guna2GradientPanel14.Size = new System.Drawing.Size(242, 181);
             this.guna2GradientPanel14.TabIndex = 4;
             // 
-            // panelHistory
-            // 
-            this.panelHistory.Controls.Add(this.guna2DataGridView1);
-            this.panelHistory.Location = new System.Drawing.Point(265, 0);
-            this.panelHistory.Name = "panelHistory";
-            this.panelHistory.Size = new System.Drawing.Size(799, 774);
-            this.panelHistory.TabIndex = 15;
-            // 
-            // guna2DataGridView1
-            // 
-            dataGridViewCellStyle31.BackColor = System.Drawing.Color.White;
-            this.guna2DataGridView1.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle31;
-            dataGridViewCellStyle32.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle32.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(88)))), ((int)(((byte)(255)))));
-            dataGridViewCellStyle32.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle32.ForeColor = System.Drawing.Color.White;
-            dataGridViewCellStyle32.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle32.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle32.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.guna2DataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle32;
-            this.guna2DataGridView1.ColumnHeadersHeight = 19;
-            this.guna2DataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.EnableResizing;
-            this.guna2DataGridView1.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
-            this.Event,
-            this.Participant,
-            this.Time,
-            this.Date});
-            dataGridViewCellStyle33.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle33.BackColor = System.Drawing.Color.White;
-            dataGridViewCellStyle33.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle33.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(71)))), ((int)(((byte)(69)))), ((int)(((byte)(94)))));
-            dataGridViewCellStyle33.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(231)))), ((int)(((byte)(229)))), ((int)(((byte)(255)))));
-            dataGridViewCellStyle33.SelectionForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(71)))), ((int)(((byte)(69)))), ((int)(((byte)(94)))));
-            dataGridViewCellStyle33.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.guna2DataGridView1.DefaultCellStyle = dataGridViewCellStyle33;
-            this.guna2DataGridView1.GridColor = System.Drawing.Color.FromArgb(((int)(((byte)(231)))), ((int)(((byte)(229)))), ((int)(((byte)(255)))));
-            this.guna2DataGridView1.Location = new System.Drawing.Point(9, 21);
-            this.guna2DataGridView1.Name = "guna2DataGridView1";
-            this.guna2DataGridView1.RowHeadersVisible = false;
-            this.guna2DataGridView1.Size = new System.Drawing.Size(772, 740);
-            this.guna2DataGridView1.TabIndex = 0;
-            this.guna2DataGridView1.ThemeStyle.AlternatingRowsStyle.BackColor = System.Drawing.Color.White;
-            this.guna2DataGridView1.ThemeStyle.AlternatingRowsStyle.Font = null;
-            this.guna2DataGridView1.ThemeStyle.AlternatingRowsStyle.ForeColor = System.Drawing.Color.Empty;
-            this.guna2DataGridView1.ThemeStyle.AlternatingRowsStyle.SelectionBackColor = System.Drawing.Color.Empty;
-            this.guna2DataGridView1.ThemeStyle.AlternatingRowsStyle.SelectionForeColor = System.Drawing.Color.Empty;
-            this.guna2DataGridView1.ThemeStyle.BackColor = System.Drawing.Color.White;
-            this.guna2DataGridView1.ThemeStyle.GridColor = System.Drawing.Color.FromArgb(((int)(((byte)(231)))), ((int)(((byte)(229)))), ((int)(((byte)(255)))));
-            this.guna2DataGridView1.ThemeStyle.HeaderStyle.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(88)))), ((int)(((byte)(255)))));
-            this.guna2DataGridView1.ThemeStyle.HeaderStyle.BorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
-            this.guna2DataGridView1.ThemeStyle.HeaderStyle.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.guna2DataGridView1.ThemeStyle.HeaderStyle.ForeColor = System.Drawing.Color.White;
-            this.guna2DataGridView1.ThemeStyle.HeaderStyle.HeaightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.EnableResizing;
-            this.guna2DataGridView1.ThemeStyle.HeaderStyle.Height = 19;
-            this.guna2DataGridView1.ThemeStyle.ReadOnly = false;
-            this.guna2DataGridView1.ThemeStyle.RowsStyle.BackColor = System.Drawing.Color.White;
-            this.guna2DataGridView1.ThemeStyle.RowsStyle.BorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.SingleHorizontal;
-            this.guna2DataGridView1.ThemeStyle.RowsStyle.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.guna2DataGridView1.ThemeStyle.RowsStyle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(71)))), ((int)(((byte)(69)))), ((int)(((byte)(94)))));
-            this.guna2DataGridView1.ThemeStyle.RowsStyle.Height = 22;
-            this.guna2DataGridView1.ThemeStyle.RowsStyle.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(231)))), ((int)(((byte)(229)))), ((int)(((byte)(255)))));
-            this.guna2DataGridView1.ThemeStyle.RowsStyle.SelectionForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(71)))), ((int)(((byte)(69)))), ((int)(((byte)(94)))));
-            // 
-            // Event
-            // 
-            this.Event.HeaderText = "Event";
-            this.Event.Name = "Event";
-            this.Event.ReadOnly = true;
-            // 
-            // Participant
-            // 
-            this.Participant.HeaderText = "Participant";
-            this.Participant.Name = "Participant";
-            this.Participant.ReadOnly = true;
-            // 
-            // Time
-            // 
-            this.Time.HeaderText = "Time";
-            this.Time.Name = "Time";
-            this.Time.ReadOnly = true;
-            // 
-            // Date
-            // 
-            this.Date.HeaderText = "Date";
-            this.Date.Name = "Date";
-            this.Date.ReadOnly = true;
-            // 
             // UserDashboard
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 17F);
@@ -429,7 +331,6 @@
             this.Controls.Add(this.HomePanel);
             this.Controls.Add(this.EventVoteProfile);
             this.Controls.Add(this.VotePanel);
-            this.Controls.Add(this.panelHistory);
             this.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Margin = new System.Windows.Forms.Padding(4);
@@ -446,8 +347,6 @@
             this.VotePanel.ResumeLayout(false);
             this.VotePanel.PerformLayout();
             this.flowLayoutPanel2.ResumeLayout(false);
-            this.panelHistory.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.guna2DataGridView1)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -477,11 +376,5 @@
         private Guna.UI2.WinForms.Guna2GradientPanel guna2GradientPanel1;
         private Guna.UI2.WinForms.Guna2GradientPanel guna2GradientPanel3;
         private Guna.UI2.WinForms.Guna2GradientPanel guna2GradientPanel4;
-        private Guna.UI2.WinForms.Guna2GradientPanel panelHistory;
-        private Guna.UI2.WinForms.Guna2DataGridView guna2DataGridView1;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Event;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Participant;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Time;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Date;
     }
 }
