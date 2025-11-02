@@ -1,4 +1,5 @@
-﻿using Guna.UI2.WinForms;
+﻿using LoginForm = VotingSystem.VotingSystem;
+using Guna.UI2.WinForms;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -760,25 +761,52 @@ namespace POLLINGSYSTEM
 
         private void ClearFields()
         {
-            tbStudentNum.Clear();
-            tbLastName.Clear();
-            tbFirstName.Clear();
-            tbMiddleName.Clear();
-            tbDesc.Clear();
+            // Participants panel
+            tbStudentNum.Text = string.Empty;
+            tbLastName.Text = string.Empty;
+            tbFirstName.Text = string.Empty;
+            tbMiddleName.Text = string.Empty;
+            tbPosition.Text = string.Empty;
             cbProgram.SelectedIndex = -1;
+            cbProgram.Text = string.Empty;
 
-            cbTeam.Items.Clear();
-
+            // Events panel
             tbEventID.Text = "No data";
-
-            tbEventName.Clear();
-            tbTeam.Clear();
-
+            tbEventName.Text = string.Empty;
+            tbTeam.Text = string.Empty;
+            tbDesc.Text = string.Empty;
             dtpTimeStart.Value = DateTime.Now;
             dtpTimeEnd.Value = DateTime.Now;
-
             cbEvent.SelectedIndex = -1;
-            currentStudID = "";
+            cbEvent.Text = string.Empty;
+            cbTeam.Items.Clear();
+            cbTeam.SelectedIndex = -1;
+            cbTeam.Text = string.Empty;
+
+            // Accounts panel (use existing helper)
+            ClearAccountFields();
+            currentAccountStudID = string.Empty;
+
+            // Search fields
+            guna2TextBox1.Text = string.Empty; // participants search
+            guna2TextBox2.Text = string.Empty; // events search
+            guna2TextBox3.Text = string.Empty; // voters search
+            tbSearchEventName.Text = string.Empty; // chart search
+
+            // Chart
+            chartEvent.Series.Clear();
+            chartEvent.Titles.Clear();
+
+            // Clear grid selections
+            if (EventTableData != null) EventTableData.ClearSelection();
+            if (TableParticipant != null) TableParticipant.ClearSelection();
+            if (votersData != null) votersData.ClearSelection();
+
+            // Trackers
+            currentStudID = string.Empty;
+
+            // Keep the toggle button aligned after layout changes
+            PositionTogglePasswordButton();
         }
 
         private void TableParticipant_CellContentClick(object sender, DataGridViewCellEventArgs e)
@@ -1337,6 +1365,7 @@ END", con))
         private void btnDashboard_Click(object sender, EventArgs e)
         {
             // Show Dashboard, hide others
+            ClearFields();
             dashboardP.Visible = true;
             ListEventPanel.Visible = false;
             mPartcipant.Visible = false;
@@ -1347,6 +1376,7 @@ END", con))
 
         private void btnAccount_Click(object sender, EventArgs e)
         {
+            ClearFields();
             AccountPanel.Visible = true;
             dashboardP.Visible = false;
             ListEventPanel.Visible = false;
@@ -1357,6 +1387,7 @@ END", con))
 
         private void btnHistory_Click(object sender, EventArgs e)
         {
+            ClearFields();
             HistoryPanel.Visible = true;
             dashboardP.Visible = false;
             ListEventPanel.Visible = false;
@@ -1368,31 +1399,32 @@ END", con))
 
         private void btnSignOut_Click(object sender, EventArgs e)
         {
-            // Implement sign-out or close form
+            var loginForm = new LoginForm();
+            loginForm.Show();
             this.Close();
         }
 
         private void btnEvents_Click(object sender, EventArgs e)
         {
             // Show Events page
+            ClearFields();
             mPartcipant.Visible = false;
             ListEventPanel.Visible = true;
             dashboardP.Visible = false;
             HistoryPanel.Visible = false;
             AccountPanel.Visible = false;
-
             LoadEventsData();
         }
 
         private void btnPaticipant_Click(object sender, EventArgs e)
         {
             // Show Participant page
+            ClearFields();
             mPartcipant.Visible = true;
             ListEventPanel.Visible = false;
             dashboardP.Visible = false;
             HistoryPanel.Visible = false;
             AccountPanel.Visible = false;
-
             LoadParticipantsData();
         }
 

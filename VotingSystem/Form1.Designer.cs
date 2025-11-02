@@ -149,6 +149,7 @@
             this.ClientSize = new System.Drawing.Size(318, 511);
             this.Controls.Add(this.tbPass);
             this.Name = "VotingSystem";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.tbPass.ResumeLayout(false);
             this.tbPass.PerformLayout();
             this.ResumeLayout(false);
