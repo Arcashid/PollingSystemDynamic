@@ -47,7 +47,6 @@ namespace POLLINGSYSTEM
         {
             InitializeComponent();
 
-            // Ensure audit log table exists
             EnsureAuditLogTable();
 
             UpdateTotalEventLabel();
@@ -73,48 +72,6 @@ namespace POLLINGSYSTEM
             tbPassword.SizeChanged += (s, e) => PositionTogglePasswordButton();
             tbPassword.LocationChanged += (s, e) => PositionTogglePasswordButton();
             AccountPanel.Resize += (s, e) => PositionTogglePasswordButton();
-
-            //EventTableData.AutoGenerateColumns = false;
-            //EventTableData.Columns.Clear();
-
-            //if (!EventTableData.Columns.Contains("EventID"))
-            //{
-            //    EventTableData.Columns.Add("EventID", "Event ID");
-            //    EventTableData.Columns["EventID"].DataPropertyName = "EventID";
-            //    EventTableData.Columns["EventID"].Visible = false;
-            //}
-
-            //if (!EventTableData.Columns.Contains("EventName"))
-            //{
-            //    EventTableData.Columns.Add("EventName", "Event Name");
-            //    EventTableData.Columns["EventName"].DataPropertyName = "EventName";
-            //}
-
-            //if (!EventTableData.Columns.Contains("description"))
-            //{
-            //    EventTableData.Columns.Add("description", "Description");
-            //    EventTableData.Columns["description"].DataPropertyName = "description";
-            //}
-
-            //if (!EventTableData.Columns.Contains("TeamGroup"))
-            //{
-            //    EventTableData.Columns.Add("TeamGroup", "Group");
-            //    EventTableData.Columns["TeamGroup"].DataPropertyName = "TeamGroup";
-            //}
-
-            //if (!EventTableData.Columns.Contains("TimeStart"))
-            //{
-            //    EventTableData.Columns.Add("TimeStart", "Time Start");
-            //    EventTableData.Columns["TimeStart"].DataPropertyName = "TimeStart";
-            //    EventTableData.Columns["TimeStart"].DefaultCellStyle.Format = "MM/dd/yy hh:mm tt";
-            //}
-
-            //if (!EventTableData.Columns.Contains("TimeEnd"))
-            //{
-            //    EventTableData.Columns.Add("TimeEnd", "Time End");
-            //    EventTableData.Columns["TimeEnd"].DataPropertyName = "TimeEnd";
-            //    EventTableData.Columns["TimeEnd"].DefaultCellStyle.Format = "MM/dd/yy hh:mm tt";
-            //}
 
             foreach (string program in programs)
             {
@@ -280,11 +237,11 @@ namespace POLLINGSYSTEM
         {
             if (tbPassword.PasswordChar == '•')
             {
-                tbPassword.PasswordChar = '\0'; // show
+                tbPassword.PasswordChar = '\0';
             }
             else
             {
-                tbPassword.PasswordChar = '•';  // hide
+                tbPassword.PasswordChar = '•';
             }
         }
 
@@ -336,7 +293,6 @@ namespace POLLINGSYSTEM
             {
                 if (searchKey == "")
                 {
-                    // Use real column names so the rest of the code can rely on them.
                     da = new SqlDataAdapter(
                         "SELECT EventID, EventName, TeamGroup, TimeStart, TimeEnd, description FROM EventTb",
                         con);
@@ -355,7 +311,6 @@ namespace POLLINGSYSTEM
 
                 EventTableData.DataSource = dt;
 
-                // Optional: set friendly column headers without breaking column names used in code.
                 if (EventTableData.Columns.Contains("EventID"))
                     EventTableData.Columns["EventID"].HeaderText = "Event ID";
                 if (EventTableData.Columns.Contains("EventName"))
@@ -369,7 +324,6 @@ namespace POLLINGSYSTEM
                 if (EventTableData.Columns.Contains("description"))
                     EventTableData.Columns["description"].HeaderText = "Description";
 
-                // Optional: set friendly column headers without breaking column names used in code.
                 if (EventTableData.Columns.Contains("EventID"))
                     EventTableData.Columns["EventID"].HeaderText = "Event ID";
                 if (EventTableData.Columns.Contains("EventName"))
@@ -383,7 +337,6 @@ namespace POLLINGSYSTEM
                 if (EventTableData.Columns.Contains("description"))
                     EventTableData.Columns["description"].HeaderText = "Description";
 
-                // Optional: set friendly column headers without breaking column names used in code.
                 if (EventTableData.Columns.Contains("EventID"))
                     EventTableData.Columns["EventID"].HeaderText = "Event ID";
                 if (EventTableData.Columns.Contains("EventName"))
@@ -397,7 +350,6 @@ namespace POLLINGSYSTEM
                 if (EventTableData.Columns.Contains("description"))
                     EventTableData.Columns["description"].HeaderText = "Description";
 
-                // Optional: set friendly column headers without breaking column names used in code.
                 if (EventTableData.Columns.Contains("EventID"))
                     EventTableData.Columns["EventID"].HeaderText = "Event ID";
                 if (EventTableData.Columns.Contains("EventName"))
@@ -411,7 +363,6 @@ namespace POLLINGSYSTEM
                 if (EventTableData.Columns.Contains("description"))
                     EventTableData.Columns["description"].HeaderText = "Description";
 
-                // Configure AuditLog grid columns
                 ConfigureHistoryGridForAudit();
             }
         }
@@ -498,7 +449,6 @@ namespace POLLINGSYSTEM
                 {
                     con.Open();
 
-                    // 1) Prevent duplicates of (EventName, TeamGroup)
                     using (var dup = new SqlCommand(
                         @"SELECT COUNT(1) 
                           FROM dbo.EventTb 
@@ -515,7 +465,6 @@ namespace POLLINGSYSTEM
                         }
                     }
 
-                    // 2) Insert without EventID (IDENTITY generates it)
                     using (var cmd = new SqlCommand(
                         @"INSERT INTO dbo.EventTb (EventName, TeamGroup, TimeStart, TimeEnd, [description])
                           VALUES (@EventName, @TeamGroup, @TimeStart, @TimeEnd, @description);
@@ -539,7 +488,6 @@ namespace POLLINGSYSTEM
             }
             catch (SqlException ex) when (ex.Number == 2601 || ex.Number == 2627)
             {
-                // Unique key violation (duplicate EventName + TeamGroup)
                 MessageBox.Show("This Event Name and Group already exist. Please choose a different group name.");
             }
             catch (Exception ex)
@@ -574,7 +522,6 @@ namespace POLLINGSYSTEM
                 {
                     con.Open();
 
-                    // Prevent duplicates on update (ignore current row)
                     using (var dup = new SqlCommand(
                         @"SELECT COUNT(1) 
                           FROM dbo.EventTb 
@@ -634,7 +581,6 @@ namespace POLLINGSYSTEM
 
         private void btnDeleteEvent_Click_1(object sender, EventArgs e)
         {
-            // Validate selection from the Events grid
             if (!int.TryParse(tbEventID.Text, out var eventId) ||
                 string.IsNullOrWhiteSpace(tbEventName.Text) ||
                 string.IsNullOrWhiteSpace(tbTeam.Text))
@@ -663,7 +609,6 @@ namespace POLLINGSYSTEM
                     {
                         try
                         {
-                            // Remove dependent rows first (no FK constraints in schema)
                             using (var cmdP = new SqlCommand(
                                 @"DELETE FROM dbo.Participants 
                                   WHERE [Event] = @EventName AND [Team] = @TeamName", con, tx))
@@ -682,7 +627,6 @@ namespace POLLINGSYSTEM
                                 cmdH.ExecuteNonQuery();
                             }
 
-                            // Finally delete the event row
                             using (var cmdE = new SqlCommand(
                                 @"DELETE FROM dbo.EventTb WHERE EventID = @EventID", con, tx))
                             {
@@ -772,7 +716,6 @@ namespace POLLINGSYSTEM
             {
                 con.Open();
 
-                // Prefill form fields from Voters without touching the Participants grid
                 if (voterData && !string.IsNullOrWhiteSpace(searchKey))
                 {
                     using (var cmd = new SqlCommand(
@@ -794,10 +737,9 @@ namespace POLLINGSYSTEM
                             }
                         }
                     }
-                    return; // Important: do not change TableParticipant binding
+                    return;
                 }
 
-                // Normal Participants listing/binding (parameterized search)
                 using (var cmd = new SqlCommand(
                     @"SELECT StudentNo, LastName, FirstName, MiddleName, Program, Team, Event, position
               FROM dbo.Participants
@@ -815,7 +757,6 @@ namespace POLLINGSYSTEM
 
         private void ClearFields()
         {
-            // Participants panel
             tbStudentNum.Text = string.Empty;
             tbLastName.Text = string.Empty;
             tbFirstName.Text = string.Empty;
@@ -824,7 +765,6 @@ namespace POLLINGSYSTEM
             cbProgram.SelectedIndex = -1;
             cbProgram.Text = string.Empty;
 
-            // Events panel
             tbEventID.Text = "No data";
             tbEventName.Text = string.Empty;
             tbTeam.Text = string.Empty;
@@ -837,26 +777,21 @@ namespace POLLINGSYSTEM
             cbTeam.SelectedIndex = -1;
             cbTeam.Text = string.Empty;
 
-            // Accounts panel (use existing helper)
             ClearAccountFields();
             currentAccountStudID = string.Empty;
 
-            // Search fields
-            guna2TextBox1.Text = string.Empty; // participants search
-            guna2TextBox2.Text = string.Empty; // events search
-            guna2TextBox3.Text = string.Empty; // voters search
-            tbSearchEventName.Text = string.Empty; // chart search
+            guna2TextBox1.Text = string.Empty;
+            guna2TextBox2.Text = string.Empty;
+            guna2TextBox3.Text = string.Empty; 
+            tbSearchEventName.Text = string.Empty;
 
-            // Chart
             chartEvent.Series.Clear();
             chartEvent.Titles.Clear();
 
-            // Clear grid selections
             if (EventTableData != null) EventTableData.ClearSelection();
             if (TableParticipant != null) TableParticipant.ClearSelection();
             if (votersData != null) votersData.ClearSelection();
 
-            // Trackers
             currentStudID = string.Empty;
             currentStudEvent = string.Empty;
             currentStudTeam = string.Empty;
@@ -881,7 +816,6 @@ namespace POLLINGSYSTEM
                 string eventName = row.Cells["Event"].Value?.ToString().Trim();
                 string teamName = row.Cells["Team"].Value?.ToString().Trim();
 
-                // Track original keys for update/delete
                 currentStudEvent = eventName ?? string.Empty;
                 currentStudTeam = teamName ?? string.Empty;
 
@@ -926,7 +860,6 @@ namespace POLLINGSYSTEM
                 {
                     con.Open();
 
-                    // Prevent duplicate (StudentNo, Event, Team) memberships
                     using (var dup = new SqlCommand(
                         @"SELECT COUNT(1)
                           FROM dbo.Participants
@@ -1002,7 +935,6 @@ namespace POLLINGSYSTEM
                 {
                     con.Open();
 
-                    // If keys changed, prevent duplicate to another existing membership
                     using (var dup = new SqlCommand(
                         @"SELECT COUNT(1)
                   FROM dbo.Participants
@@ -1069,7 +1001,6 @@ namespace POLLINGSYSTEM
                     UpdateTotalEventLabel();
                     UpdateEventDropdown();
 
-                    // Refresh current keys to new values
                     currentStudID = tbStudentNum.Text.Trim();
                     currentStudEvent = cbEvent.Text.Trim();
                     currentStudTeam = cbTeam.Text.Trim();
@@ -1170,10 +1101,10 @@ namespace POLLINGSYSTEM
                     con.Open();
                     SqlCommand cmd = new SqlCommand(
                         "INSERT INTO [dbo].[Voters] ([StudentNo], [Password], [Role], [LastName], [FirstName], [MiddleName], [Program], [IsActive]) " +
-                        "VALUES (@StudentNo, @Password, @Role, @LastName, @FirstName, @MiddleName, @Program, 0)", con); // Set IsActive=0 by default
+                        "VALUES (@StudentNo, @Password, @Role, @LastName, @FirstName, @MiddleName, @Program, 0)", con); 
 
                     cmd.Parameters.AddWithValue("@StudentNo", tbStudentNumberAcc.Text.Trim());
-                    cmd.Parameters.AddWithValue("@Password", tbPassword.Text); // ⚠️ Remember to HASH this!
+                    cmd.Parameters.AddWithValue("@Password", tbPassword.Text);
                     cmd.Parameters.AddWithValue("@Role", cbRoleAcc.Text);
                     cmd.Parameters.AddWithValue("@LastName", tbLastNameAcc.Text.Trim());
                     cmd.Parameters.AddWithValue("@FirstName", tbFirstNameAcc.Text.Trim());
@@ -1399,7 +1330,6 @@ namespace POLLINGSYSTEM
             }
         }
 
-        // --- AUDIT LOGGING: create table if missing ---
         private void EnsureAuditLogTable()
         {
             try
@@ -1425,11 +1355,9 @@ END", con))
             }
             catch
             {
-                // swallow: do not block UI if table creation fails
             }
         }
 
-        // --- AUDIT LOGGING: helper ---
         private void LogActivity(string action, string details, string eventName = null, string teamName = null)
         {
             try
@@ -1451,13 +1379,11 @@ END", con))
             }
             catch
             {
-                // swallow: logging must not break the main flow
             }
         }
 
         private void btnDashboard_Click(object sender, EventArgs e)
         {
-            // Show Dashboard, hide others
             ClearFields();
             dashboardP.Visible = true;
             ListEventPanel.Visible = false;
@@ -1499,7 +1425,6 @@ END", con))
 
         private void btnEvents_Click(object sender, EventArgs e)
         {
-            // Show Events page
             ClearFields();
             mPartcipant.Visible = false;
             ListEventPanel.Visible = true;
@@ -1511,7 +1436,6 @@ END", con))
 
         private void btnPaticipant_Click(object sender, EventArgs e)
         {
-            // Show Participant page
             ClearFields();
             mPartcipant.Visible = true;
             ListEventPanel.Visible = false;
@@ -1538,7 +1462,6 @@ END", con))
 
         private void guna2Button1_Click(object sender, EventArgs e)
         {
-            // Add a temporary header above existing titles for printing
             var header = new System.Windows.Forms.DataVisualization.Charting.Title
             {
                 Text = "Polling Result",
@@ -1548,7 +1471,6 @@ END", con))
                 ForeColor = Color.Black
             };
 
-            // Date at upper-right
             var dateTitle = new System.Windows.Forms.DataVisualization.Charting.Title
             {
                 Text = DateTime.Now.ToString("MM/dd/yyyy hh:mm tt"),
@@ -1567,7 +1489,6 @@ END", con))
             }
             finally
             {
-                // Clean up so the extras don’t remain on the live chart
                 chartEvent.Titles.Remove(header);
                 chartEvent.Titles.Remove(dateTitle);
                 header.Dispose();
@@ -1582,7 +1503,6 @@ END", con))
 
         private void UpdateProgramVisibility()
         {
-            // Determine selected role from SelectedItem or Text fallback
             var selectedRole = cbRoleAcc.SelectedItem as string;
             if (string.IsNullOrWhiteSpace(selectedRole))
                 selectedRole = cbRoleAcc.Text;
@@ -1590,7 +1510,6 @@ END", con))
             bool showProgram = string.Equals(selectedRole, "Student", StringComparison.OrdinalIgnoreCase)
                                || string.IsNullOrWhiteSpace(selectedRole);
 
-            // Show/Hide Program label and combobox for non-students (e.g., Admin)
             lblProgram.Visible = showProgram;
             cbProgramAcc.Visible = showProgram;
             cbProgramAcc.Enabled = showProgram;

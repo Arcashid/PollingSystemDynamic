@@ -15,7 +15,6 @@ namespace VotingSystem
         public int StudentID { get; set; }
         private System.Windows.Forms.DataGridView VotedhistoryData;
 
-        // ADD: fields inside class `UserDashboard`
         private CancellationTokenSource _refreshCts;
         private Task _refreshTask;
 
@@ -36,7 +35,6 @@ namespace VotingSystem
             await Task.Delay(1000);
             LoadEventsIntoFlowPanel();
 
-            // start background refresh loop
             StartRefreshLoop();
         }
 
@@ -136,7 +134,6 @@ namespace VotingSystem
                             dtStart = Convert.ToDateTime(reader["TimeStart"]);
                             dtEnd = Convert.ToDateTime(reader["TimeEnd"]);
 
-                            // Show events that are currently active (start <= now <= end)
                             if (now >= dtStart && now <= dtEnd)
                             {
                                 hasEvents = true;
@@ -355,6 +352,46 @@ namespace VotingSystem
 
             panel.Controls.Add(lblTeamName);
 
+            var positions = GetTeamPositions(eventName, teamName);
+            int y = lblTeamName.Bottom + 8;
+
+            int showCount = Math.Min(3, positions.Count);
+            for (int i = 0; i < showCount; i++)
+            {
+                var pos = positions[i];
+                var posLabel = new Label
+                {
+                    Text = pos,
+                    AutoSize = true,
+                    Font = new Font("Arial", 9f, FontStyle.Bold),
+                    ForeColor = Color.White,
+                    BackColor = Color.FromArgb(30, 126, 230),
+                    Padding = new Padding(6, 2, 6, 2),
+                    Location = new Point(10, y),
+                    Cursor = Cursors.Hand
+                };
+                posLabel.Click += TeamBox_Click;  
+                panel.Controls.Add(posLabel);
+                y += posLabel.Height + 4;
+
+                if (y > panel.Height - 24) break;
+            }
+
+            if (positions.Count > showCount && y <= panel.Height - 20)
+            {
+                var more = new Label
+                {
+                    Text = $"+{positions.Count - showCount} more",
+                    AutoSize = true,
+                    Font = new Font("Arial", 8f, FontStyle.Italic),
+                    ForeColor = Color.DimGray,
+                    Location = new Point(10, y),
+                    Cursor = Cursors.Hand
+                };
+                more.Click += TeamBox_Click;
+                panel.Controls.Add(more);
+            }
+
             return panel;
         }
 
@@ -454,7 +491,6 @@ namespace VotingSystem
                     {
                         try
                         {
-                            // Check if already voted
                             string checkSql = @"
                                 IF EXISTS (
                                     SELECT 1 
@@ -482,7 +518,6 @@ namespace VotingSystem
                                 }
                             }
 
-                            // Insert new vote - Note HistoryID is now auto-incrementing
                             string insertSql = @"INSERT INTO History (StudentNo, TeamName, EventName, VoteDate) 
                                        VALUES (@StudentNo, @TeamName, @EventName, GETDATE())";
 
@@ -568,44 +603,6 @@ namespace VotingSystem
             }
         }
 
-        //private void LoadVoteHistory()
-        //{
-        //    DataTable dt = new DataTable();
-
-        //    ConfigureHistoryDataGridView();
-
-        //    try
-        //    {
-        //        using (SqlConnection conn = new SqlConnection(ConnectionString))
-        //        {
-        //            conn.Open();
-        //            string sql = @"SELECT EventName as Event, TeamName as Team, VoteDate as Date
-        //                             FROM History 
-        //                             WHERE StudentNo = @StudentNo
-        //                             ORDER BY VoteDate DESC";
-
-        //            using (SqlCommand cmd = new SqlCommand(sql, conn))
-        //            {
-        //                cmd.Parameters.AddWithValue("@StudentNo", StudentID);
-
-        //                using (SqlDataAdapter da = new SqlDataAdapter(cmd))
-        //                {
-        //                    da.Fill(dt);
-        //                    guna2DataGridView1.DataSource = dt;
-        //                }
-        //            }
-        //        }
-        //    }
-        //    catch (SqlException sqlex)
-        //    {
-        //        MessageBox.Show($"Error loading vote history: {sqlex.Message}", "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        MessageBox.Show($"Error loading vote history: {ex.Message}", "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        //    }
-        //}
-
         private void ConfigureHistoryDataGridView()
         {
             VotedhistoryData.AutoGenerateColumns = false;
@@ -631,7 +628,6 @@ namespace VotingSystem
             panel.BorderStyle = BorderStyle.FixedSingle;
             panel.Margin = new Padding(2);
 
-            // Event and Team Names
             Label lblInfo = new Label
             {
                 Text = $"{eventName}\nVoted Team: {teamName}",
@@ -642,7 +638,6 @@ namespace VotingSystem
             };
             panel.Controls.Add(lblInfo);
 
-            // Vote Date
             Label lblDate = new Label
             {
                 Text = $"Voted on: {voteDate:MM/dd/yyyy hh:mm tt}",
@@ -662,10 +657,9 @@ namespace VotingSystem
             Application.Exit();
         }
 
-        // INSERT: new methods inside class `UserDashboard`
         private void StartRefreshLoop()
         {
-            StopRefreshLoop(); // ensure only one loop runs
+            StopRefreshLoop();
 
             _refreshCts = new CancellationTokenSource();
             var token = _refreshCts.Token;
@@ -681,7 +675,6 @@ namespace VotingSystem
 
                         if (IsDisposed || !IsHandleCreated) break;
 
-                        // update UI on UI thread
                         BeginInvoke((Action)(() =>
                         {
                             try
@@ -690,7 +683,6 @@ namespace VotingSystem
                             }
                             catch
                             {
-                                // swallow or log; avoid crashing the loop on UI update errors
                             }
                         }));
                     }
@@ -700,7 +692,6 @@ namespace VotingSystem
                     }
                     catch
                     {
-                        // swallow unexpected errors to keep loop alive
                     }
                 }
             }, token);
@@ -717,7 +708,6 @@ namespace VotingSystem
             }
             catch
             {
-                // ignore
             }
             finally
             {
@@ -726,8 +716,6 @@ namespace VotingSystem
                 _refreshTask = null;
             }
         }
-
-        // INSERT: ensure cleanup on form close inside class `UserDashboard`
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
             StopRefreshLoop();
@@ -766,5 +754,42 @@ namespace VotingSystem
             }
             catch { }
         }
+
+        private System.Collections.Generic.List<string> GetTeamPositions(string eventName, string teamName)
+        {
+            var list = new System.Collections.Generic.List<string>();
+
+            const string sql = @"
+        SELECT position
+        FROM dbo.Participants
+        WHERE [Event] = @EventName
+          AND [Team]  = @TeamName
+          AND position IS NOT NULL
+          AND LTRIM(RTRIM(position)) <> ''";
+
+            try
+            {
+                using (var con = new SqlConnection(ConnectionString))
+                using (var cmd = new SqlCommand(sql, con))
+                {
+                    cmd.Parameters.AddWithValue("@EventName", eventName);
+                    cmd.Parameters.AddWithValue("@TeamName", teamName);
+                    con.Open();
+
+                    using (var r = cmd.ExecuteReader())
+                    {
+                        while (r.Read())
+                        {
+                            list.Add(Convert.ToString(r["position"]));
+                        }
+                    }
+                }
+            }
+            catch
+    {
+    }
+
+    return list;
+}
     }
 }
