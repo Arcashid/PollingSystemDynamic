@@ -1535,69 +1535,270 @@ END", con))
                 return;
             }
 
-            const string sql = @"
-                SELECT 
-                    e.TeamGroup AS Team,
-                    e.EventName,
-                    COUNT(h.TeamName) AS VoteCount
-                FROM EventTb e
-                LEFT JOIN History h 
-                    ON e.TeamGroup = h.TeamName 
-                   AND e.EventName = h.EventName
-                WHERE e.EventName = @EventName
-                GROUP BY e.TeamGroup, e.EventName
-                ORDER BY VoteCount DESC";
+            string eventNameFilter = tbSearchEventName.Text.Trim();
+
+            const string sqlPositions = @"
+        SELECT DISTINCT LTRIM(RTRIM(p.position)) AS Position
+        FROM dbo.Participants p
+        WHERE p.[Event] = @EventName
+          AND p.position IS NOT NULL
+          AND LTRIM(RTRIM(p.position)) <> ''
+        ORDER BY Position";
+
+            const string sqlVotesPerTeamForPosition = @"
+        SELECT 
+            e.TeamGroup AS Team,
+            COUNT(h.TeamName) AS VoteCount
+        FROM dbo.EventTb e
+        LEFT JOIN dbo.History h
+               ON e.EventName = h.EventName
+              AND e.TeamGroup = h.TeamName
+              AND h.Position = @Position
+        WHERE e.EventName = @EventName
+        GROUP BY e.TeamGroup
+        ORDER BY VoteCount DESC";
+
+            const string sqlVotesPerTeamNoPosition = @"
+        SELECT 
+            e.TeamGroup AS Team,
+            COUNT(h.TeamName) AS VoteCount
+        FROM dbo.EventTb e
+        LEFT JOIN dbo.History h
+               ON e.EventName = h.EventName
+              AND e.TeamGroup = h.TeamName
+        WHERE e.EventName = @EventName
+        GROUP BY e.TeamGroup
+        ORDER BY VoteCount DESC";
+
+            const string sqlTotalVotesForEvent = @"
+        SELECT COUNT(*) 
+        FROM dbo.History 
+        WHERE EventName = @EventName";
+
+            const string sqlDistinctTeams = @"
+        SELECT DISTINCT e.TeamGroup AS Team
+        FROM dbo.EventTb e
+        WHERE e.EventName = @EventName
+        ORDER BY e.TeamGroup";
 
             using (var conn = new SqlConnection(ConnectionString))
-            using (var cmd = new SqlCommand(sql, conn))
+            using (var cmdPos   = new SqlCommand(sqlPositions, conn))
+    using (var cmdTotal = new SqlCommand(sqlTotalVotesForEvent, conn))
+    using (var cmdTeams = new SqlCommand(sqlDistinctTeams, conn))
             {
                 chartEvent.Series.Clear();
                 chartEvent.Titles.Clear();
+                chartEvent.ChartAreas.Clear();
+                chartEvent.Legends.Clear();
 
-                var series = new Series("Votes")
-                {
-                    ChartType = SeriesChartType.Pie,
-                    IsValueShownAsLabel = true,
-                    Font = new Font("Arial", 10, FontStyle.Bold)
-                };
+                var legend = new Legend("Legend1") { Docking = Docking.Right, BackColor = Color.Transparent };
+                chartEvent.Legends.Add(legend);
+                chartEvent.Palette = ChartColorPalette.None;
 
-                cmd.Parameters.AddWithValue("@EventName", tbSearchEventName.Text.Trim());
+                cmdPos.Parameters.AddWithValue("@EventName", eventNameFilter);
+                cmdTotal.Parameters.AddWithValue("@EventName", eventNameFilter);
+                cmdTeams.Parameters.AddWithValue("@EventName", eventNameFilter);
 
                 try
                 {
                     conn.Open();
-                    using (var reader = cmd.ExecuteReader())
+
+                    int totalVotes = Convert.ToInt32(cmdTotal.ExecuteScalar());
+                    var globalTitle = new Title($"{eventNameFilter} - Total Votes: {totalVotes}")
                     {
-                        string eventName = string.Empty;
-                        int totalVotes = 0;
+                        Docking = Docking.Top,
+                        IsDockedInsideChartArea = false,
+                        DockingOffset = 10,
+                        Font = new Font("Segoe UI", 11f, FontStyle.Regular)
+                    };
+                    chartEvent.Titles.Add(globalTitle);
 
-                        while (reader.Read())
+                    // Team colors + single legend items
+                    var teamList = new List<string>();
+                    using (var tr = cmdTeams.ExecuteReader())
+                        while (tr.Read())
+                            teamList.Add(Convert.ToString(tr["Team"]));
+
+                    var palette = new[]
+                    {
+                        Color.DodgerBlue, Color.Orange, Color.MediumSeaGreen, Color.MediumOrchid,
+                        Color.Goldenrod, Color.Crimson, Color.DarkTurquoise, Color.SaddleBrown,
+                        Color.SlateBlue, Color.Salmon
+                    };
+                    var teamColors = new Dictionary<string, Color>(StringComparer.OrdinalIgnoreCase);
+                    for (int i = 0; i < teamList.Count; i++)
+                        teamColors[teamList[i]] = palette[i % palette.Length];
+
+                    legend.CustomItems.Clear();
+                    foreach (var t in teamList)
+                    {
+                        legend.CustomItems.Add(new LegendItem
                         {
-                            eventName = Convert.ToString(reader["EventName"]);
-                            string teamName = Convert.ToString(reader["Team"]);
-                            int voteCount = reader["VoteCount"] == DBNull.Value ? 0 : Convert.ToInt32(reader["VoteCount"]);
-                            totalVotes += voteCount;
+                            Name = t,
+                            Color = teamColors[t],
+                            ImageStyle = LegendImageStyle.Rectangle
+                        });
+                    }
 
-                            series.Points.AddXY(teamName, voteCount);
+                    // Positions
+                    var positions = new List<string>();
+                    using (var r = cmdPos.ExecuteReader())
+                        while (r.Read())
+                            positions.Add(Convert.ToString(r["Position"]));
+
+                    if (positions.Count == 0)
+                    {
+                        var area = new ChartArea("AllVotes");
+                        HideAxes(area);
+                        chartEvent.ChartAreas.Add(area);
+                        ApplyPieInnerPlotSize(area);
+
+                        // Legend outside the white box of this area
+                        legend.DockedToChartArea = area.Name;
+                        legend.IsDockedInsideChartArea = false;
+
+                        // Title centered INSIDE the white box (top header)
+                        var areaTitle = new Title("Position: All")
+                        {
+                            DockedToChartArea = area.Name,
+                            Docking = Docking.Top,
+                            IsDockedInsideChartArea = true,
+                            Alignment = ContentAlignment.TopCenter,
+                            DockingOffset = 2,
+                            Font = new Font("Segoe UI", 11f, FontStyle.Bold)
+                        };
+                        chartEvent.Titles.Add(areaTitle);
+
+                        var series = new Series("Votes")
+                        {
+                            ChartType = SeriesChartType.Pie,
+                            IsValueShownAsLabel = true,
+                            Font = new Font("Arial", 10, FontStyle.Bold),
+                            ChartArea = area.Name,
+                            Legend = legend.Name,
+                            IsVisibleInLegend = false
+                        };
+
+                        using (var cmd = new SqlCommand(sqlVotesPerTeamNoPosition, conn))
+                        {
+                            cmd.Parameters.AddWithValue("@EventName", eventNameFilter);
+                            using (var rr = cmd.ExecuteReader())
+                            {
+                                while (rr.Read())
+                                {
+                                    string team = Convert.ToString(rr["Team"]);
+                                    int count = rr["VoteCount"] == DBNull.Value ? 0 : Convert.ToInt32(rr["VoteCount"]);
+                                    var p = series.Points.Add(count);
+                                    p.AxisLabel = team;
+                                    p.LegendText = "#VALX";
+                                    if (teamColors.ContainsKey(team)) p.Color = teamColors[team];
+                                }
+                            }
                         }
 
-                        if (!string.IsNullOrEmpty(eventName))
+                        chartEvent.Series.Add(series);
+                        return;
+                    }
+
+                    // Multiple positions -> arrange in a 2-column grid with a little extra gap
+                    int n = positions.Count;
+                    int columns = n <= 2 ? n : 2;
+                    int rows = (int)Math.Ceiling(n / (double)columns);
+
+                    float margin = 4.5f; // increased gap between the two pies
+                    float width = (100f - (columns + 1) * margin) / columns;
+                    float height = (100f - (rows + 1) * margin) / rows;
+
+                    for (int i = 0; i < positions.Count; i++)
+                    {
+                        string position = positions[i];
+                        string areaName = $"Area_{i}_{position}";
+
+                        int row = i / columns;
+                        int col = i % columns;
+
+                        float x = margin + col * (width + margin);
+                        float y = margin + row * (height + margin);
+
+                        var area = new ChartArea(areaName);
+                        HideAxes(area);
+                        area.Position = new ElementPosition(x, y, width, height);
+                        chartEvent.ChartAreas.Add(area);
+                        ApplyPieInnerPlotSize(area); // smaller pie and extra internal top padding
+
+                        // Clean header OUTSIDE the pie area with padding
+                        var title = new Title($"Position: {position}")
                         {
-                            chartEvent.Titles.Add($"{eventName} - Total Votes: {totalVotes}");
-                            chartEvent.Series.Add(series);
-                        }
-                        else
+                            DockedToChartArea = areaName,
+                            Docking = Docking.Top,
+                            IsDockedInsideChartArea = false, // move outside the area
+                            DockingOffset = 6,               // pixels of spacing from the area
+                            Font = new Font("Segoe UI", 11f, FontStyle.Bold)
+                        };
+                        chartEvent.Titles.Add(title);
+
+                        var series = new Series($"Votes_{position}")
                         {
-                            chartEvent.Titles.Add("No event found with that name");
+                            ChartType = SeriesChartType.Pie,
+                            IsValueShownAsLabel = true,
+                            Font = new Font("Arial", 9, FontStyle.Bold),
+                            ChartArea = area.Name,
+                            Legend = legend.Name,
+                            IsVisibleInLegend = false // avoids duplicate legend items
+                        };
+
+                        using (var cmd = new SqlCommand(sqlVotesPerTeamForPosition, conn))
+                        {
+                            cmd.Parameters.AddWithValue("@EventName", eventNameFilter);
+                            cmd.Parameters.AddWithValue("@Position", position);
+
+                            using (var rr = cmd.ExecuteReader())
+                            {
+                                while (rr.Read())
+                                {
+                                    string team = Convert.ToString(rr["Team"]);
+                                    int count = rr["VoteCount"] == DBNull.Value ? 0 : Convert.ToInt32(rr["VoteCount"]);
+                                    var p = series.Points.Add(count);
+                                    p.AxisLabel = team;
+                                    p.LegendText = "#VALX";
+                                    if (teamColors.ContainsKey(team)) p.Color = teamColors[team];
+                                }
+                            }
                         }
+
+                        chartEvent.Series.Add(series);
                     }
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show($"Error loading chart data: {ex.Message}", "Database Error",
                         MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    chartEvent.Titles.Add("Error loading data");
+                    chartEvent.Titles.Clear();
+                    chartEvent.Series.Clear();
+                    chartEvent.ChartAreas.Clear();
                 }
+            }
+
+            void HideAxes(ChartArea area)
+            {
+                area.AxisX.LabelStyle.Enabled = false;
+                area.AxisY.LabelStyle.Enabled = false;
+                area.AxisX.MajorGrid.Enabled = false;
+                area.AxisY.MajorGrid.Enabled = false;
+                area.AxisX.MajorTickMark.Enabled = false;
+                area.AxisY.MajorTickMark.Enabled = false;
+                area.AxisX.LineWidth = 0;
+                area.AxisY.LineWidth = 0;
+            }
+
+            // Smaller pie and extra padding inside the area so labels/titles feel cleaner
+            void ApplyPieInnerPlotSize(ChartArea area)
+            {
+                area.InnerPlotPosition.Auto = false;
+                area.InnerPlotPosition.X = 14f;   // a bit more side padding
+                area.InnerPlotPosition.Y = 18f;   // more top padding above pie
+                area.InnerPlotPosition.Width  = 72f;
+                area.InnerPlotPosition.Height = 70f;
             }
         }
 

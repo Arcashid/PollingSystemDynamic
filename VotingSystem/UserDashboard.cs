@@ -18,6 +18,8 @@ namespace VotingSystem
         private CancellationTokenSource _refreshCts;
         private Task _refreshTask;
 
+        private bool _historyHasPositionColumn;
+
         public UserDashboard()
         {
             InitializeComponent();
@@ -32,20 +34,86 @@ namespace VotingSystem
 
             VotedhistoryData = new System.Windows.Forms.DataGridView();
 
+            await EnsureHistorySchemaAsync();
+
             await Task.Delay(1000);
             LoadEventsIntoFlowPanel();
 
             StartRefreshLoop();
         }
 
-        // Ensure voter name loads when the dashboard is shown
         protected override async void OnShown(EventArgs e)
         {
             base.OnShown(e);
             await LoadVoterNameAsync();
         }
 
-        // Loads the voter's name into lblVotersName in the format "LastName, FirstName Middle Name"
+        private async Task EnsureHistorySchemaAsync()
+        {
+            try
+            {
+                using (var con = new SqlConnection(ConnectionString))
+                {
+                    await con.OpenAsync();
+
+                    bool hasPosition;
+                    using (var checkCmd = new SqlCommand(
+                        "SELECT CASE WHEN COL_LENGTH('dbo.History','Position') IS NULL THEN 0 ELSE 1 END", con))
+                    {
+                        hasPosition = Convert.ToInt32(await checkCmd.ExecuteScalarAsync()) == 1;
+                    }
+
+                    if (!hasPosition)
+                    {
+                        try
+                        {
+                            using (var addCmd = new SqlCommand(
+                                "ALTER TABLE dbo.History ADD Position NVARCHAR(255) NULL;", con))
+                            {
+                                await addCmd.ExecuteNonQueryAsync();
+                            }
+                            hasPosition = true;
+                        }
+                        catch
+                        {
+                            hasPosition = false;
+                        }
+                    }
+
+                    _historyHasPositionColumn = hasPosition;
+
+                    if (_historyHasPositionColumn)
+                    {
+                        try
+                        {
+                            using (var dropIdx = new SqlCommand(@"
+IF EXISTS (SELECT 1 FROM sys.indexes WHERE name='UQ_History_Student_Event' AND object_id=OBJECT_ID('dbo.History'))
+    DROP INDEX [UQ_History_Student_Event] ON dbo.History;", con))
+                            {
+                                await dropIdx.ExecuteNonQueryAsync();
+                            }
+
+                            using (var createIdx = new SqlCommand(@"
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name='UQ_History_Student_Event_Position' AND object_id=OBJECT_ID('dbo.History'))
+    CREATE UNIQUE INDEX [UQ_History_Student_Event_Position]
+        ON dbo.History (StudentNo, EventName, Position);", con))
+                            {
+                                await createIdx.ExecuteNonQueryAsync();
+                            }
+                        }
+                        catch
+                        {
+
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                _historyHasPositionColumn = false;
+            }
+        }
+
         private async Task LoadVoterNameAsync()
         {
             if (lblVotersName == null) return;
@@ -231,10 +299,16 @@ namespace VotingSystem
                         Padding = new Padding(0, 10, 0, 0)
                     };
 
-                    string votedQuery = @"SELECT h.TeamName, h.EventName, h.VoteDate
-                                        FROM History h
-                                        WHERE h.StudentNo = @StudentNo
-                                        ORDER BY h.VoteDate DESC";
+                    string votedQuery = _historyHasPositionColumn
+    ? @"SELECT h.TeamName, h.EventName, h.Position, h.VoteDate
+        FROM dbo.History h
+        WHERE h.StudentNo = @StudentNo
+        ORDER BY h.VoteDate DESC"
+    : @"SELECT h.TeamName, h.EventName, h.VoteDate
+        FROM dbo.History h
+        WHERE h.StudentNo = @StudentNo
+        ORDER BY h.VoteDate DESC";
+
                     using (SqlCommand votedCmd = new SqlCommand(votedQuery, conn))
                     {
                         votedCmd.Parameters.AddWithValue("@StudentNo", StudentID);
@@ -244,11 +318,14 @@ namespace VotingSystem
                             while (votedReader.Read())
                             {
                                 hasVotes = true;
-                                Panel votedPanel = CreateVotedTeamPanel(
-                                    votedReader["TeamName"].ToString(),
-                                    votedReader["EventName"].ToString(),
-                                    Convert.ToDateTime(votedReader["VoteDate"])
-                                );
+                                var team = Convert.ToString(votedReader["TeamName"]);
+                                var evt  = Convert.ToString(votedReader["EventName"]);
+                                var pos  = _historyHasPositionColumn && votedReader["Position"] != DBNull.Value
+                                            ? Convert.ToString(votedReader["Position"])
+                                            : null;
+                                var when = Convert.ToDateTime(votedReader["VoteDate"]);
+
+                                Panel votedPanel = CreateVotedTeamPanel(team, evt, pos, when);
                                 votedItemsPanel.Controls.Add(votedPanel);
                             }
 
@@ -411,7 +488,6 @@ namespace VotingSystem
 
             panel.Controls.Add(lblTeamName);
 
-            // Show up to 3 positions quickly in the card; clicking a position goes straight to selection handler
             var positions = GetTeamPositions(eventName, teamName);
             int y = lblTeamName.Bottom + 8;
 
@@ -457,7 +533,6 @@ namespace VotingSystem
             return panel;
         }
 
-        // CLICK ON TEAM CARD -> open position selection panel
         private void TeamBox_Click(object sender, EventArgs e)
         {
             Control clickedControl = (Control)sender;
@@ -471,12 +546,22 @@ namespace VotingSystem
 
                 if (!string.IsNullOrEmpty(teamName) && !string.IsNullOrEmpty(eventName))
                 {
-                    ShowPositionSelection(eventName, teamName);
+                    var positions = GetTeamPositions(eventName, teamName);
+                    if (positions.Count == 0)
+                    {
+                        HomePanel.Visible = false;
+                        VotePanel.Visible = false;
+                        EventVoteProfile.Visible = true;
+                        ShowVotingInterface(teamName, eventName, null);
+                    }
+                    else
+                    {
+                        ShowPositionSelection(eventName, teamName);
+                    }
                 }
             }
         }
 
-        // CLICK ON A POSITION CHIP IN THE TEAM CARD -> go directly to vote page
         private void PositionLabel_Click(object sender, EventArgs e)
         {
             var ctrl = (Control)sender;
@@ -497,7 +582,6 @@ namespace VotingSystem
             }
         }
 
-        // New: Position selection screen for a given team within an event
         private void ShowPositionSelection(string eventName, string teamName)
         {
             VotePanel.Controls.Clear();
@@ -536,7 +620,6 @@ namespace VotingSystem
 
             if (positions.Count == 0)
             {
-                // No positions configured, go straight to voting
                 ShowVotingInterface(teamName, eventName, null);
                 return;
             }
@@ -572,7 +655,6 @@ namespace VotingSystem
             }
         }
 
-        // Show voting screen for the chosen team and position
         private void ShowVotingInterface(string teamName, string eventName, string positionName)
         {
             EventVoteProfile.Controls.Clear();
@@ -650,41 +732,59 @@ namespace VotingSystem
                     {
                         try
                         {
-                            string checkSql = @"
-                                IF EXISTS (
-                                    SELECT 1 
-                                    FROM History h 
-                                    WHERE h.StudentNo = @StudentNo 
-                                    AND h.EventName = @EventName
-                                )
-                                SELECT 1
-                                ELSE
-                                SELECT 0";
+                            string checkSql = _historyHasPositionColumn
+                                ? @"
+IF EXISTS (
+    SELECT 1 
+    FROM dbo.History h 
+    WHERE h.StudentNo = @StudentNo 
+      AND h.EventName = @EventName
+      AND ((@Position IS NULL AND h.Position IS NULL) OR (h.Position = @Position))
+)
+SELECT 1 ELSE SELECT 0"
+                                : @"
+IF EXISTS (
+    SELECT 1 
+    FROM dbo.History h 
+    WHERE h.StudentNo = @StudentNo 
+      AND h.EventName = @EventName
+)
+SELECT 1 ELSE SELECT 0";
 
                             using (SqlCommand checkCmd = new SqlCommand(checkSql, conn, transaction))
                             {
                                 checkCmd.Parameters.AddWithValue("@StudentNo", StudentID);
                                 checkCmd.Parameters.AddWithValue("@EventName", currentEvent);
+                                if (_historyHasPositionColumn)
+                                    checkCmd.Parameters.AddWithValue("@Position", (object)positionName ?? DBNull.Value);
 
                                 int hasVoted = (int)checkCmd.ExecuteScalar();
 
                                 if (hasVoted == 1)
                                 {
                                     transaction.Rollback();
-                                    MessageBox.Show($"You have already voted for the '{currentEvent}' event.",
+                                    var what = _historyHasPositionColumn && positionName != null
+                                        ? $"the '{positionName}' position"
+                                        : "this event";
+                                    MessageBox.Show($"You have already voted for {what}.",
                                         "Vote Failed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                                     return;
                                 }
                             }
 
-                            string insertSql = @"INSERT INTO History (StudentNo, TeamName, EventName, VoteDate) 
-                                       VALUES (@StudentNo, @TeamName, @EventName, GETDATE())";
+                            string insertSql = _historyHasPositionColumn
+                                ? @"INSERT INTO dbo.History (StudentNo, TeamName, EventName, Position, VoteDate) 
+                           VALUES (@StudentNo, @TeamName, @EventName, @Position, GETDATE())"
+                                : @"INSERT INTO dbo.History (StudentNo, TeamName, EventName, VoteDate) 
+                           VALUES (@StudentNo, @TeamName, @EventName, GETDATE())";
 
                             using (SqlCommand insertCmd = new SqlCommand(insertSql, conn, transaction))
                             {
                                 insertCmd.Parameters.AddWithValue("@StudentNo", StudentID);
                                 insertCmd.Parameters.AddWithValue("@TeamName", teamToVoteFor);
                                 insertCmd.Parameters.AddWithValue("@EventName", currentEvent);
+                                if (_historyHasPositionColumn)
+                                    insertCmd.Parameters.AddWithValue("@Position", (object)positionName ?? DBNull.Value);
 
                                 int rowsAffected = insertCmd.ExecuteNonQuery();
 
@@ -692,16 +792,16 @@ namespace VotingSystem
                                 {
                                     transaction.Commit();
                                     MessageBox.Show(
-                                        positionName == null
-                                            ? $"Successfully voted for: {teamToVoteFor} in {currentEvent}!"
-                                            : $"Successfully voted for: {teamToVoteFor} - {positionName} in {currentEvent}!",
+                                        _historyHasPositionColumn && positionName != null
+                                            ? $"Successfully voted for: {teamToVoteFor} - {positionName} in {currentEvent}!"
+                                            : $"Successfully voted for: {teamToVoteFor} in {currentEvent}!",
                                         "Vote Confirmed", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                                     LogActivity(
                                         "Vote",
-                                        positionName == null
-                                            ? $"User {StudentID} voted '{teamToVoteFor}' in event '{currentEvent}'."
-                                            : $"User {StudentID} voted '{teamToVoteFor}' for '{positionName}' in event '{currentEvent}'.",
+                                        _historyHasPositionColumn && positionName != null
+                                            ? $"User {StudentID} voted '{teamToVoteFor}' for '{positionName}' in event '{currentEvent}'."
+                                            : $"User {StudentID} voted '{teamToVoteFor}' in event '{currentEvent}'.",
                                         currentEvent,
                                         teamToVoteFor);
 
@@ -718,7 +818,7 @@ namespace VotingSystem
                                 }
                             }
                         }
-                        catch (Exception)
+                        catch
                         {
                             transaction.Rollback();
                             throw;
@@ -783,18 +883,22 @@ namespace VotingSystem
             VotedhistoryData.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
         }
 
-        private Panel CreateVotedTeamPanel(string teamName, string eventName, DateTime voteDate)
+        private Panel CreateVotedTeamPanel(string teamName, string eventName, string position, DateTime voteDate)
         {
             Panel panel = new Panel();
-            panel.Width = 250;
-            panel.Height = 80;
+            panel.Width = 270;
+            panel.Height = 90;
             panel.BackColor = Color.FromArgb(30, 126, 230);
             panel.BorderStyle = BorderStyle.FixedSingle;
             panel.Margin = new Padding(2);
 
+            string header = string.IsNullOrWhiteSpace(position)
+                ? $"{eventName}\nVoted Team: {teamName}"
+                : $"{eventName}\nVoted: {teamName} - {position}";
+
             Label lblInfo = new Label
             {
-                Text = $"{eventName}\nVoted Team: {teamName}",
+                Text = header,
                 Font = new Font("Arial", 10, FontStyle.Bold),
                 Location = new Point(5, 5),
                 AutoSize = true,
@@ -806,7 +910,7 @@ namespace VotingSystem
             {
                 Text = $"Voted on: {voteDate:MM/dd/yyyy hh:mm tt}",
                 Font = new Font("Arial", 9, FontStyle.Italic),
-                Location = new Point(5, 45),
+                Location = new Point(5, 58),
                 AutoSize = true,
                 ForeColor = Color.LightGray
             };
