@@ -10,9 +10,15 @@ namespace VotingSystem
         private const string ConnectionString = @"Data Source=DESKTOP-RVB0L7Q\SQLEXPRESS;Initial Catalog=POLLINGSYSTEM;Integrated Security=True;Encrypt=False";
         private readonly object check;
 
+        // NEW: track visibility state
+        private bool _passwordVisible = false;
+
         public VotingSystem()
         {
             InitializeComponent();
+
+            // NEW: start masked
+            tbPassword.PasswordChar = '•';
         }
 
         private void btnSignIn_Click(object sender, EventArgs e)
@@ -20,7 +26,12 @@ namespace VotingSystem
             int studentId = 0;
             string currentUser = "";
             string studentNo = tbUsername.Text.Trim();
+
+            // keep masked when signing in
             tbPassword.PasswordChar = '•';
+            _passwordVisible = false;
+            btnTogglePassword.Text = "👁";
+
             string password = tbPassword.Text;
 
             if (string.IsNullOrWhiteSpace(studentNo) || string.IsNullOrWhiteSpace(password))
@@ -107,7 +118,29 @@ namespace VotingSystem
 
         private void masked(object sender, EventArgs e)
         {
-            tbPassword.PasswordChar = '•';
+            // keep masked only when not explicitly visible
+            if (!_passwordVisible)
+                tbPassword.PasswordChar = '•';
+        }
+
+        // NEW: toggle show/hide
+        private void btnTogglePassword_Click(object sender, EventArgs e)
+        {
+            _passwordVisible = !_passwordVisible;
+
+            if (_passwordVisible)
+            {
+                tbPassword.PasswordChar = '\0';  // show
+                btnTogglePassword.Text = "🙈";
+            }
+            else
+            {
+                tbPassword.PasswordChar = '•';   // hide
+                btnTogglePassword.Text = "👁";
+            }
+
+            // keep caret position sensible
+            tbPassword.SelectionStart = tbPassword.Text.Length;
         }
     }
 }

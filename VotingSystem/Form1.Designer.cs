@@ -30,6 +30,7 @@
         private void InitializeComponent()
         {
             this.tbPass = new Guna.UI2.WinForms.Guna2GradientPanel();
+            this.btnTogglePassword = new Guna.UI2.WinForms.Guna2Button();
             this.tbPassword = new Guna.UI2.WinForms.Guna2TextBox();
             this.label3 = new System.Windows.Forms.Label();
             this.btnSignIn = new Guna.UI2.WinForms.Guna2GradientButton();
@@ -42,6 +43,7 @@
             // tbPass
             // 
             this.tbPass.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(126)))), ((int)(((byte)(230)))));
+            this.tbPass.Controls.Add(this.btnTogglePassword);
             this.tbPass.Controls.Add(this.tbPassword);
             this.tbPass.Controls.Add(this.label3);
             this.tbPass.Controls.Add(this.btnSignIn);
@@ -53,6 +55,25 @@
             this.tbPass.Name = "tbPass";
             this.tbPass.Size = new System.Drawing.Size(322, 516);
             this.tbPass.TabIndex = 0;
+            // 
+            // btnTogglePassword
+            // 
+            this.btnTogglePassword.Animated = true;
+            this.btnTogglePassword.BackColor = System.Drawing.Color.White;
+            this.btnTogglePassword.BorderRadius = 12;
+            this.btnTogglePassword.DisabledState.BorderColor = System.Drawing.Color.DarkGray;
+            this.btnTogglePassword.DisabledState.CustomBorderColor = System.Drawing.Color.DarkGray;
+            this.btnTogglePassword.DisabledState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
+            this.btnTogglePassword.DisabledState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(141)))), ((int)(((byte)(141)))), ((int)(((byte)(141)))));
+            this.btnTogglePassword.FillColor = System.Drawing.Color.White;
+            this.btnTogglePassword.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F);
+            this.btnTogglePassword.ForeColor = System.Drawing.Color.Black;
+            this.btnTogglePassword.Location = new System.Drawing.Point(241, 308);
+            this.btnTogglePassword.Name = "btnTogglePassword";
+            this.btnTogglePassword.Size = new System.Drawing.Size(30, 24);
+            this.btnTogglePassword.TabIndex = 34;
+            this.btnTogglePassword.Text = "👁";
+            this.btnTogglePassword.Click += new System.EventHandler(this.btnTogglePassword_Click);
             // 
             // tbPassword
             // 
@@ -164,6 +185,7 @@
         private Guna.UI2.WinForms.Guna2TextBox tbUsername;
         private System.Windows.Forms.Label label3;
         private Guna.UI2.WinForms.Guna2TextBox tbPassword;
+        private Guna.UI2.WinForms.Guna2Button btnTogglePassword;
     }
 }
 
