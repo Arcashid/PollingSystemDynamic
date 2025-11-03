@@ -184,13 +184,12 @@ namespace POLLINGSYSTEM
                 Font = new Font("Segoe UI", 12f, FontStyle.Bold),
                 AutoSize = true,
                 Text = DateTime.Now.ToString("MM/dd/yyyy hh:mm tt"),
-                Visible = false // hide date in the on-screen header
+                Visible = false
             };
 
             guna2GradientPanel5.Controls.Add(lblHeaderTitle);
             guna2GradientPanel5.Controls.Add(lblHeaderDate);
 
-            // keep the whole header aligned with the button row
             guna2GradientPanel5.Resize += (s, e) =>
             {
                 PositionHeaderControls();
@@ -249,31 +248,33 @@ namespace POLLINGSYSTEM
                 using (SqlConnection conn = new SqlConnection(ConnectionString))
                 {
                     conn.Open();
-                    string sql = @"SELECT COUNT(*) 
-                                 FROM History h
-                                 INNER JOIN EventTb e ON h.EventName = e.EventName";
+
+                    string sql = @"
+                        SELECT COUNT(DISTINCT h.StudentNo)
+                        FROM dbo.History h
+                        INNER JOIN dbo.EventTb e ON h.EventName = e.EventName";
 
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
                     {
-                        int voteCount = (int)cmd.ExecuteScalar();
+                        int distinctVoters = Convert.ToInt32(cmd.ExecuteScalar() ?? 0);
                         if (lblVotersVoteCast.InvokeRequired)
                         {
-                            lblVotersVoteCast.Invoke(new Action(() => lblVotersVoteCast.Text = voteCount.ToString()));
+                            lblVotersVoteCast.Invoke(new Action(() => lblVotersVoteCast.Text = distinctVoters.ToString()));
                         }
                         else
                         {
-                            lblVotersVoteCast.Text = voteCount.ToString();
+                            lblVotersVoteCast.Text = distinctVoters.ToString();
                         }
                     }
                 }
             }
-            catch (Exception ex)
+            catch
             {
                 if (lblVotersVoteCast.InvokeRequired)
                 {
                     lblVotersVoteCast.Invoke(new Action(() => lblVotersVoteCast.Text = "0"));
                 }
-                else
+                else     
                 {
                     lblVotersVoteCast.Text = "0";
                 }
@@ -283,7 +284,7 @@ namespace POLLINGSYSTEM
         private void btnTogglePassword_Click(object sender, EventArgs e)
         {
             if (tbPassword.PasswordChar == '•')
-            {
+            {  
                 tbPassword.PasswordChar = '\0';
             }
             else
@@ -1463,7 +1464,6 @@ END", con))
             LoadHistoryData();
         }
 
-        // Update the sign out handler to set admin inactive before closing
 private void btnSignOut_Click(object sender, EventArgs e)
 {
     SetAdminInactiveOnSignOut();
@@ -1511,7 +1511,6 @@ private void btnSignOut_Click(object sender, EventArgs e)
             LoadVotersData(guna2TextBox3.Text);
         }
 
-        // update printing header to match the request (center bold title, right bold date)
 private void guna2Button1_Click(object sender, EventArgs e)
 {
     var header = new System.Windows.Forms.DataVisualization.Charting.Title
@@ -1520,15 +1519,17 @@ private void guna2Button1_Click(object sender, EventArgs e)
         Docking = System.Windows.Forms.DataVisualization.Charting.Docking.Top,
         Alignment = ContentAlignment.TopCenter,
         Font = new Font("Segoe UI", 16f, FontStyle.Bold),
+        DockingOffset = -40,
         ForeColor = Color.Black
     };
 
     var dateTitle = new System.Windows.Forms.DataVisualization.Charting.Title
     {
-        Text = DateTime.Now.ToString("MM/dd/yyyy hh:mm tt"),
+        Text = "Date : " + DateTime.Now.ToString("MM/dd/yyyy") + " | Time : " + DateTime.Now.ToString("hh:mm tt"),
         Docking = System.Windows.Forms.DataVisualization.Charting.Docking.Top,
-        Alignment = ContentAlignment.TopRight,
-        Font = new Font("Segoe UI", 12f, FontStyle.Bold),
+        Alignment = ContentAlignment.TopCenter,
+        Font = new Font("Segoe UI", 10f, FontStyle.Italic),
+        DockingOffset = -40,
         ForeColor = Color.Black
     };
 
@@ -1641,7 +1642,7 @@ private void guna2Button1_Click(object sender, EventArgs e)
     using (var cmdTeams = new SqlCommand(sqlDistinctTeams, conn))
             {
                 chartEvent.Series.Clear();
-                chartEvent.Titles.Clear();      // no chart header title anymore (we use a label above)
+                chartEvent.Titles.Clear();
                 chartEvent.ChartAreas.Clear();
                 chartEvent.Legends.Clear();
 
@@ -1657,12 +1658,10 @@ private void guna2Button1_Click(object sender, EventArgs e)
                 {
                     conn.Open();
 
-                    // Update the label at the same height as the Generate Report button
                     int totalVotes = Convert.ToInt32(cmdTotal.ExecuteScalar());
                     lblChartHeader.Text = $"{eventNameFilter} - Total Votes: {totalVotes}";
                     PositionChartHeaderLabel();
 
-                    // Team colors + single legend items
                     var teamList = new List<string>();
                     using (var tr = cmdTeams.ExecuteReader())
                         while (tr.Read())
@@ -1689,7 +1688,6 @@ private void guna2Button1_Click(object sender, EventArgs e)
                         });
                     }
 
-                    // Positions
                     var positions = new List<string>();
                     using (var r = cmdPos.ExecuteReader())
                         while (r.Read())
@@ -1702,18 +1700,16 @@ private void guna2Button1_Click(object sender, EventArgs e)
                         chartEvent.ChartAreas.Add(area);
                         ApplyPieInnerPlotSize(area);
 
-                        // Legend outside the white box of this area
                         legend.DockedToChartArea = area.Name;
                         legend.IsDockedInsideChartArea = false;
 
-                        // Title centered INSIDE the area (for the pie area itself)
                         var areaTitle = new Title("Position: All")
                         {
                             DockedToChartArea = area.Name,
                             Docking = Docking.Top,
                             IsDockedInsideChartArea = true,
                             Alignment = ContentAlignment.TopCenter,
-                            DockingOffset = 2,
+                            DockingOffset = -8,
                             Font = new Font("Segoe UI", 11f, FontStyle.Bold)
                         };
                         chartEvent.Titles.Add(areaTitle);
@@ -1749,12 +1745,11 @@ private void guna2Button1_Click(object sender, EventArgs e)
                         return;
                     }
 
-                    // Multiple positions -> arrange in a 2-column grid with a little extra gap
                     int n = positions.Count;
                     int columns = n <= 2 ? n : 2;
                     int rows = (int)Math.Ceiling(n / (double)columns);
 
-                    float margin = 4.5f; // increased gap between the two pies
+                    float margin = 4.5f;
                     float width = (100f - (columns + 1) * margin) / columns;
                     float height = (100f - (rows + 1) * margin) / rows;
 
@@ -1775,13 +1770,12 @@ private void guna2Button1_Click(object sender, EventArgs e)
                         chartEvent.ChartAreas.Add(area);
                         ApplyPieInnerPlotSize(area);
 
-                        // Clean header OUTSIDE the pie area with padding
                         var title = new Title($"Position: {position}")
                         {
                             DockedToChartArea = areaName,
                             Docking = Docking.Top,
-                            IsDockedInsideChartArea = false,
-                            DockingOffset = 6,
+                            IsDockedInsideChartArea = true,
+                            DockingOffset = -9,
                             Font = new Font("Segoe UI", 11f, FontStyle.Bold)
                         };
                         chartEvent.Titles.Add(title);
@@ -1994,15 +1988,12 @@ SELECT [LogId]
 
         }
 
-        // adjust the event header line to sit below the header row (not on the same row)
 private void PositionChartHeaderLabel()
 {
     if (lblChartHeader == null || guna2GradientPanel5 == null || guna2Button1 == null) return;
 
-    // Y: just below the header/button row
-    int y = guna2Button1.Bottom + 8;
+    int y = guna2Button1.Bottom;
 
-    // X: centered in the panel
     int x = Math.Max(0, (guna2GradientPanel5.Width - lblChartHeader.Width) / 2);
 
     lblChartHeader.Location = new Point(x, y);
@@ -2050,7 +2041,6 @@ private void SetAdminInactiveOnSignOut()
     }
     catch
     {
-        // Optional: swallow or add logging
     }
 }
     }
