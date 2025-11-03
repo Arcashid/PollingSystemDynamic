@@ -38,14 +38,14 @@ namespace VotingSystem
             StartRefreshLoop();
         }
 
-        // NEW: Ensure voter name loads when the dashboard is shown
+        // Ensure voter name loads when the dashboard is shown
         protected override async void OnShown(EventArgs e)
         {
             base.OnShown(e);
             await LoadVoterNameAsync();
         }
 
-        // NEW: Loads the voter's name into lblVotersName in the format "LastName, FirstName Middle Name"
+        // Loads the voter's name into lblVotersName in the format "LastName, FirstName Middle Name"
         private async Task LoadVoterNameAsync()
         {
             if (lblVotersName == null) return;
@@ -204,7 +204,7 @@ namespace VotingSystem
                             }
                         }
 
-                        if (!hasEvents)
+                        if(!hasEvents)
                         {
                             string name = "No data";
                             string start = "No data";
@@ -411,6 +411,7 @@ namespace VotingSystem
 
             panel.Controls.Add(lblTeamName);
 
+            // Show up to 3 positions quickly in the card; clicking a position goes straight to selection handler
             var positions = GetTeamPositions(eventName, teamName);
             int y = lblTeamName.Bottom + 8;
 
@@ -427,9 +428,10 @@ namespace VotingSystem
                     BackColor = Color.FromArgb(30, 126, 230),
                     Padding = new Padding(6, 2, 6, 2),
                     Location = new Point(10, y),
-                    Cursor = Cursors.Hand
+                    Cursor = Cursors.Hand,
+                    Tag = new { TeamName = teamName, EventName = eventName, Position = pos }
                 };
-                posLabel.Click += TeamBox_Click;
+                posLabel.Click += PositionLabel_Click;
                 panel.Controls.Add(posLabel);
                 y += posLabel.Height + 4;
 
@@ -445,7 +447,8 @@ namespace VotingSystem
                     Font = new Font("Arial", 8f, FontStyle.Italic),
                     ForeColor = Color.DimGray,
                     Location = new Point(10, y),
-                    Cursor = Cursors.Hand
+                    Cursor = Cursors.Hand,
+                    Tag = new { TeamName = teamName, EventName = eventName }
                 };
                 more.Click += TeamBox_Click;
                 panel.Controls.Add(more);
@@ -454,6 +457,7 @@ namespace VotingSystem
             return panel;
         }
 
+        // CLICK ON TEAM CARD -> open position selection panel
         private void TeamBox_Click(object sender, EventArgs e)
         {
             Control clickedControl = (Control)sender;
@@ -467,15 +471,109 @@ namespace VotingSystem
 
                 if (!string.IsNullOrEmpty(teamName) && !string.IsNullOrEmpty(eventName))
                 {
-                    HomePanel.Visible = false;
-                    VotePanel.Visible = false;
-                    EventVoteProfile.Visible = true;
-                    ShowVotingInterface(teamName, eventName);
+                    ShowPositionSelection(eventName, teamName);
                 }
             }
         }
 
-        private void ShowVotingInterface(string teamName, string eventName)
+        // CLICK ON A POSITION CHIP IN THE TEAM CARD -> go directly to vote page
+        private void PositionLabel_Click(object sender, EventArgs e)
+        {
+            var ctrl = (Control)sender;
+            var tag = ctrl.Tag;
+            if (tag == null) return;
+
+            var type = tag.GetType();
+            string teamName = type.GetProperty("TeamName")?.GetValue(tag, null)?.ToString();
+            string eventName = type.GetProperty("EventName")?.GetValue(tag, null)?.ToString();
+            string position = type.GetProperty("Position")?.GetValue(tag, null)?.ToString();
+
+            if (!string.IsNullOrEmpty(teamName) && !string.IsNullOrEmpty(eventName) && !string.IsNullOrEmpty(position))
+            {
+                HomePanel.Visible = false;
+                VotePanel.Visible = false;
+                EventVoteProfile.Visible = true;
+                ShowVotingInterface(teamName, eventName, position);
+            }
+        }
+
+        // New: Position selection screen for a given team within an event
+        private void ShowPositionSelection(string eventName, string teamName)
+        {
+            VotePanel.Controls.Clear();
+            HomePanel.Visible = false;
+            VotePanel.Visible = true;
+            EventVoteProfile.Visible = false;
+
+            var btnBack = new Button
+            {
+                Text = "← Back to Teams",
+                Location = new Point(10, 10),
+                Size = new Size(140, 30)
+            };
+            btnBack.Click += (s, e) => LoadEventTeams(eventName);
+            VotePanel.Controls.Add(btnBack);
+
+            var title = new Label
+            {
+                Text = $"Select Position: {teamName}",
+                Font = new Font("Arial", 16, FontStyle.Bold),
+                AutoSize = true,
+                Location = new Point(170, 15)
+            };
+            VotePanel.Controls.Add(title);
+
+            var flp = new FlowLayoutPanel
+            {
+                Location = new Point(0, 60),
+                Size = new Size(VotePanel.Width, VotePanel.Height - 60),
+                AutoScroll = true,
+                BackColor = Color.Transparent
+            };
+            VotePanel.Controls.Add(flp);
+
+            var positions = GetTeamPositions(eventName, teamName);
+
+            if (positions.Count == 0)
+            {
+                // No positions configured, go straight to voting
+                ShowVotingInterface(teamName, eventName, null);
+                return;
+            }
+
+            foreach (var pos in positions)
+            {
+                var btn = new Button
+                {
+                    Text = pos,
+                    AutoSize = false,
+                    Size = new Size(200, 40),
+                    BackColor = Color.FromArgb(30, 126, 230),
+                    ForeColor = Color.White,
+                    FlatStyle = FlatStyle.Flat,
+                    Tag = new { TeamName = teamName, EventName = eventName, Position = pos },
+                    Margin = new Padding(10)
+                };
+                btn.FlatAppearance.BorderSize = 0;
+                btn.Click += (s, e) =>
+                {
+                    var t = ((Button)s).Tag;
+                    var tp = t.GetType();
+                    var tn = tp.GetProperty("TeamName").GetValue(t, null).ToString();
+                    var en = tp.GetProperty("EventName").GetValue(t, null).ToString();
+                    var pn = tp.GetProperty("Position").GetValue(t, null).ToString();
+
+                    HomePanel.Visible = false;
+                    VotePanel.Visible = false;
+                    EventVoteProfile.Visible = true;
+                    ShowVotingInterface(tn, en, pn);
+                };
+                flp.Controls.Add(btn);
+            }
+        }
+
+        // Show voting screen for the chosen team and position
+        private void ShowVotingInterface(string teamName, string eventName, string positionName)
         {
             EventVoteProfile.Controls.Clear();
             EventVoteProfile.BackColor = Color.Black;
@@ -485,8 +583,8 @@ namespace VotingSystem
             btnBackToTeams.Font = new Font("Arial", 16, FontStyle.Regular);
             btnBackToTeams.ForeColor = Color.White;
             btnBackToTeams.Location = new Point(10, 10);
-            btnBackToTeams.Size = new Size(150, 40);
-            btnBackToTeams.Click += BackToTeams_Click;
+            btnBackToTeams.Size = new Size(180, 40);
+            btnBackToTeams.Click += (s, e) => ShowPositionSelection(eventName, teamName);
             EventVoteProfile.Controls.Add(btnBackToTeams);
 
             Label lblEventName = new Label();
@@ -501,7 +599,7 @@ namespace VotingSystem
             EventVoteProfile.Controls.Add(lblEventName);
 
             Label lblTeamName = new Label();
-            lblTeamName.Text = teamName;
+            lblTeamName.Text = positionName == null ? teamName : $"{teamName} - {positionName}";
             lblTeamName.Font = new Font("Arial", 22, FontStyle.Bold);
             lblTeamName.AutoSize = true;
             lblTeamName.ForeColor = Color.White;
@@ -518,7 +616,7 @@ namespace VotingSystem
             btnVote.ForeColor = Color.White;
             btnVote.FlatStyle = FlatStyle.Flat;
             btnVote.FlatAppearance.BorderSize = 0;
-            btnVote.Tag = new { TeamName = teamName, EventName = eventName };
+            btnVote.Tag = new { TeamName = teamName, EventName = eventName, Position = positionName };
             btnVote.Location = new Point(
                 (EventVoteProfile.Width / 2) - (btnVote.Width / 2),
                 500
@@ -534,6 +632,8 @@ namespace VotingSystem
 
             string teamToVoteFor = tagData.TeamName;
             string currentEvent = tagData.EventName;
+            string positionName = null;
+            try { positionName = tagData.Position; } catch { positionName = null; }
 
             if (StudentID == 0)
             {
@@ -591,12 +691,17 @@ namespace VotingSystem
                                 if (rowsAffected > 0)
                                 {
                                     transaction.Commit();
-                                    MessageBox.Show($"Successfully voted for: {teamToVoteFor} in {currentEvent}!",
+                                    MessageBox.Show(
+                                        positionName == null
+                                            ? $"Successfully voted for: {teamToVoteFor} in {currentEvent}!"
+                                            : $"Successfully voted for: {teamToVoteFor} - {positionName} in {currentEvent}!",
                                         "Vote Confirmed", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                                     LogActivity(
                                         "Vote",
-                                        $"User {StudentID} voted '{teamToVoteFor}' in event '{currentEvent}'.",
+                                        positionName == null
+                                            ? $"User {StudentID} voted '{teamToVoteFor}' in event '{currentEvent}'."
+                                            : $"User {StudentID} voted '{teamToVoteFor}' for '{positionName}' in event '{currentEvent}'.",
                                         currentEvent,
                                         teamToVoteFor);
 
