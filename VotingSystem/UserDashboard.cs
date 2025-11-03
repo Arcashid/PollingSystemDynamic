@@ -22,8 +22,8 @@ namespace VotingSystem
         {
             InitializeComponent();
             InitializeAsync();
-
         }
+
         public async Task InitializeAsync()
         {
             HomePanel.Visible = true;
@@ -38,6 +38,65 @@ namespace VotingSystem
             StartRefreshLoop();
         }
 
+        // NEW: Ensure voter name loads when the dashboard is shown
+        protected override async void OnShown(EventArgs e)
+        {
+            base.OnShown(e);
+            await LoadVoterNameAsync();
+        }
+
+        // NEW: Loads the voter's name into lblVotersName in the format "LastName, FirstName Middle Name"
+        private async Task LoadVoterNameAsync()
+        {
+            if (lblVotersName == null) return;
+
+            lblVotersName.Text = "Loading...";
+
+            if (StudentID == 0)
+            {
+                lblVotersName.Text = string.Empty;
+                return;
+            }
+
+            const string sql = @"
+                SELECT LastName, FirstName, MiddleName
+                FROM dbo.Voters
+                WHERE StudentNo = @StudentNo";
+
+            try
+            {
+                using (var con = new SqlConnection(ConnectionString))
+                using (var cmd = new SqlCommand(sql, con))
+                {
+                    cmd.Parameters.Add("@StudentNo", SqlDbType.Int).Value = StudentID;
+
+                    await con.OpenAsync();
+                    using (var r = await cmd.ExecuteReaderAsync(CommandBehavior.SingleRow))
+                    {
+                        if (await r.ReadAsync())
+                        {
+                            var last = Convert.ToString(r["LastName"])?.Trim();
+                            var first = Convert.ToString(r["FirstName"])?.Trim();
+                            var middle = Convert.ToString(r["MiddleName"])?.Trim();
+
+                            var fullName = string.IsNullOrWhiteSpace(middle)
+                                ? $"{last}, {first}"
+                                : $"{last}, {first} {middle}";
+
+                            lblVotersName.Text = fullName;
+                        }
+                        else
+                        {
+                            lblVotersName.Text = "Unknown voter";
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                lblVotersName.Text = "Unknown voter";
+            }
+        }
 
         private void btnHome_Click(object sender, EventArgs e)
         {
@@ -145,7 +204,7 @@ namespace VotingSystem
                             }
                         }
 
-                        if(!hasEvents)
+                        if (!hasEvents)
                         {
                             string name = "No data";
                             string start = "No data";
@@ -370,7 +429,7 @@ namespace VotingSystem
                     Location = new Point(10, y),
                     Cursor = Cursors.Hand
                 };
-                posLabel.Click += TeamBox_Click;  
+                posLabel.Click += TeamBox_Click;
                 panel.Controls.Add(posLabel);
                 y += posLabel.Height + 4;
 
@@ -554,7 +613,7 @@ namespace VotingSystem
                                 }
                             }
                         }
-                        catch (Exception ex)
+                        catch (Exception)
                         {
                             transaction.Rollback();
                             throw;
@@ -716,6 +775,7 @@ namespace VotingSystem
                 _refreshTask = null;
             }
         }
+
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
             StopRefreshLoop();
@@ -786,10 +846,10 @@ namespace VotingSystem
                 }
             }
             catch
-    {
-    }
+            {
+            }
 
-    return list;
-}
+            return list;
+        }
     }
 }

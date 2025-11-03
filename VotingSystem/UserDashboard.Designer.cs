@@ -54,6 +54,7 @@
             this.guna2GradientPanel9 = new Guna.UI2.WinForms.Guna2GradientPanel();
             this.guna2GradientPanel13 = new Guna.UI2.WinForms.Guna2GradientPanel();
             this.guna2GradientPanel14 = new Guna.UI2.WinForms.Guna2GradientPanel();
+            this.lblVotersName = new Guna.UI2.WinForms.Guna2HtmlLabel();
             this.HomePanel.SuspendLayout();
             this.flowLayoutPanel1.SuspendLayout();
             this.VotedTeam.SuspendLayout();
@@ -78,10 +79,10 @@
             this.btnSignOut.HoverState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(206)))), ((int)(((byte)(210)))), ((int)(((byte)(214)))));
             this.btnSignOut.HoverState.FillColor2 = System.Drawing.Color.FromArgb(((int)(((byte)(206)))), ((int)(((byte)(210)))), ((int)(((byte)(214)))));
             this.btnSignOut.HoverState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(126)))), ((int)(((byte)(230)))));
-            this.btnSignOut.Location = new System.Drawing.Point(787, 22);
+            this.btnSignOut.Location = new System.Drawing.Point(859, 22);
             this.btnSignOut.Name = "btnSignOut";
             this.btnSignOut.PressedColor = System.Drawing.Color.WhiteSmoke;
-            this.btnSignOut.Size = new System.Drawing.Size(218, 39);
+            this.btnSignOut.Size = new System.Drawing.Size(113, 39);
             this.btnSignOut.TabIndex = 19;
             this.btnSignOut.Text = "Sign Out";
             this.btnSignOut.Click += new System.EventHandler(this.btnSignOut_Click);
@@ -89,7 +90,7 @@
             // label3
             // 
             this.label3.Image = global::VotingSystem.Properties.Resources.cubao;
-            this.label3.Location = new System.Drawing.Point(15, 22);
+            this.label3.Location = new System.Drawing.Point(39, 22);
             this.label3.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(173, 124);
@@ -98,6 +99,7 @@
             // HomePanel
             // 
             this.HomePanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(126)))), ((int)(((byte)(230)))));
+            this.HomePanel.Controls.Add(this.lblVotersName);
             this.HomePanel.Controls.Add(this.label3);
             this.HomePanel.Controls.Add(this.btnSignOut);
             this.HomePanel.Controls.Add(this.guna2HtmlLabel11);
@@ -323,14 +325,27 @@
             this.guna2GradientPanel14.Size = new System.Drawing.Size(242, 181);
             this.guna2GradientPanel14.TabIndex = 4;
             // 
+            // lblVotersName
+            // 
+            this.lblVotersName.AutoSize = false;
+            this.lblVotersName.BackColor = System.Drawing.Color.Transparent;
+            this.lblVotersName.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Underline))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblVotersName.ForeColor = System.Drawing.Color.WhiteSmoke;
+            this.lblVotersName.Location = new System.Drawing.Point(689, 29);
+            this.lblVotersName.Margin = new System.Windows.Forms.Padding(4);
+            this.lblVotersName.Name = "lblVotersName";
+            this.lblVotersName.Size = new System.Drawing.Size(163, 27);
+            this.lblVotersName.TabIndex = 20;
+            this.lblVotersName.Text = "lblVotersName";
+            // 
             // UserDashboard
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1061, 773);
+            this.Controls.Add(this.HomePanel);
             this.Controls.Add(this.EventVoteProfile);
             this.Controls.Add(this.VotePanel);
-            this.Controls.Add(this.HomePanel);
             this.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Margin = new System.Windows.Forms.Padding(4);
@@ -376,5 +391,6 @@
         private Guna.UI2.WinForms.Guna2GradientPanel guna2GradientPanel1;
         private Guna.UI2.WinForms.Guna2GradientPanel guna2GradientPanel3;
         private Guna.UI2.WinForms.Guna2GradientPanel guna2GradientPanel4;
+        private Guna.UI2.WinForms.Guna2HtmlLabel lblVotersName;
     }
 }
