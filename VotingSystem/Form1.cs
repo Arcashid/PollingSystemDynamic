@@ -1,63 +1,140 @@
 ﻿using POLLINGSYSTEM;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Data.SqlClient;
-using System.Diagnostics.Eventing.Reader;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace VotingSystem
 {
     public partial class VotingSystem : Form
     {
+        private const string ConnectionString = @"Data Source=DESKTOP-RVB0L7Q\SQLEXPRESS;Initial Catalog=POLLINGSYSTEM;Integrated Security=True;Encrypt=False";
+        private readonly object check;
+
+        private bool _passwordVisible = false;
+
         public VotingSystem()
         {
             InitializeComponent();
+
+            tbPassword.PasswordChar = '•';
         }
 
-        private void btnLogIn_Click(object sender, EventArgs e)
+        private void btnSignIn_Click(object sender, EventArgs e)
         {
+            int studentId = 0;
+            string currentUser = "";
+            string studentNo = tbUsername.Text.Trim();
 
+            tbPassword.PasswordChar = '•';
+            _passwordVisible = false;
+            btnTogglePassword.Text = "👁";
 
-            string connectionString = @"Data Source=DESKTOP-54DEN4R\SQLEXPRESS;Initial Catalog=POLLINGSYSTEM;Integrated Security=True;Encrypt=False";
+            string password = tbPassword.Text;
 
-            using (SqlConnection con = new SqlConnection(connectionString))
+            if (string.IsNullOrWhiteSpace(studentNo) || string.IsNullOrWhiteSpace(password))
+            {
+                MessageBox.Show("Please enter Student Number and Password.", "Login Failed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            string userRole = null;
+
+            using (SqlConnection con = new SqlConnection(ConnectionString))
             {
                 try
                 {
                     con.Open();
 
-                    string query = "SELECT Count([Username]) FROM [dbo].[AccountTb] WHERE [Username] = @Useername AND [Password] = @Password";
+                    string query = "SELECT [StudentNo], [Role] FROM [dbo].[Voters] WHERE [StudentNo] = @Username AND [Password] = @Password";
 
                     using (SqlCommand cmd = new SqlCommand(query, con))
                     {
-                        cmd.Parameters.AddWithValue("@Useername", tbUsername.Text);
-                        cmd.Parameters.AddWithValue("@Password", tbPassword.Text);
+                        cmd.Parameters.AddWithValue("@Username", studentNo);
+                        cmd.Parameters.AddWithValue("@Password", password);
 
-                        int count = (int)cmd.ExecuteScalar();
-
-                        if (count == 1)
+                        using (SqlDataReader reader = cmd.ExecuteReader())
                         {
-                            AdminDashboard theAdminDash = new AdminDashboard();
-                            theAdminDash.Show();
-                            this.Hide();
-                        }
-                        else
-                        {
-                            MessageBox.Show("Invalid Student Number or Password", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            if (reader.Read())
+                            {
+                                userRole = reader["Role"].ToString().Trim();
+                                currentUser = reader["StudentNo"].ToString().Trim();
+                                if (!int.TryParse(reader["StudentNo"].ToString(), out studentId))
+                                {
+                                    throw new FormatException("Student Number retrieved from database is not a valid integer.");
+                                }
+                            }
                         }
                     }
+
+                    if (userRole != null)
+                    {
+                        string updateActiveSql = "UPDATE Voters SET IsActive = 1 WHERE StudentNo = @StudentNo";
+                        using (SqlCommand updateCmd = new SqlCommand(updateActiveSql, con))
+                        {
+                            updateCmd.Parameters.AddWithValue("@StudentNo", studentNo);
+                            updateCmd.ExecuteNonQuery();
+                        }
+
+                        switch (userRole)
+                        {
+                            case "Admin":
+                                AdminDashboard adminDash = new AdminDashboard();
+                                adminDash.CurrentUser = currentUser;
+                                adminDash.Show(); object check1 = check;
+                                this.Hide();
+                                break;
+
+                            case "School Staff":
+                            case "Student":
+                                UserDashboard userDash = new UserDashboard();
+                                userDash.StudentID = studentId;
+                                userDash.Show();
+                                this.Hide();
+                                break;
+
+                            default:
+                                MessageBox.Show("Invalid user role", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        MessageBox.Show("Invalid Student Number or Password", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+                catch (FormatException fex)
+                {
+                    MessageBox.Show($"Data Error: {fex.Message}", "Input Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("An error occurred: " + ex.Message, "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("An error occurred: " + ex.Message, "System Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
+        }
+
+        private void masked(object sender, EventArgs e)
+        {
+            if (!_passwordVisible)
+                tbPassword.PasswordChar = '•';
+        }
+
+        private void btnTogglePassword_Click(object sender, EventArgs e)
+        {
+            _passwordVisible = !_passwordVisible;
+
+            if (_passwordVisible)
+            {
+                tbPassword.PasswordChar = '\0';
+                btnTogglePassword.Text = "🙈";
+            }
+            else
+            {
+                tbPassword.PasswordChar = '•';
+                btnTogglePassword.Text = "👁";
+            }
+
+            tbPassword.SelectionStart = tbPassword.Text.Length;
         }
     }
 }
